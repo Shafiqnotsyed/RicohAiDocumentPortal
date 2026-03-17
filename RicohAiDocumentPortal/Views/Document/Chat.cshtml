@@ -1,0 +1,25 @@
+﻿@model RicohAiDocumentPortal.Models.ChatDocumentResponse
+
+<section class="chat-header">
+    <h1>Document Chat</h1>
+    <p>Ask the AI questions about your uploaded document.</p>
+</section>
+
+<div class="chat-card">
+    <form asp-action="Chat" method="post">
+        <div class="form-group">
+            <label for="question">Ask a question</label>
+            <input type="text" id="question" name="question" class="form-input" placeholder="e.g. What red flags are in this invoice?" />
+        </div>
+
+        <button type="submit" class="btn-primary">Send</button>
+    </form>
+
+    @if (!string.IsNullOrWhiteSpace(Model.Answer))
+    {
+        <div class="chat-response">
+            <h3>AI Response</h3>
+            <p>@Model.Answer</p>
+        </div>
+    }
+</div>

@@ -1,0 +1,86 @@
+﻿@model RicohAiDocumentPortal.Models.AnalyzeDocumentResponse
+
+<section class="feedback-header">
+    <h1>AI Document Feedback</h1>
+    <p>Detailed analysis of the uploaded document.</p>
+</section>
+
+<section class="score-overview">
+    <div class="score-card large-score">
+        <h2>Overall Score</h2>
+        <p>@Model.Scores.OverallScore / 10</p>
+        <span>@Model.Grade</span>
+    </div>
+
+    <div class="score-card">
+        <h3>Structure</h3>
+        <p>@Model.Scores.StructureScore / 10</p>
+    </div>
+
+    <div class="score-card">
+        <h3>Completeness</h3>
+        <p>@Model.Scores.CompletenessScore / 10</p>
+    </div>
+
+    <div class="score-card">
+        <h3>Accuracy</h3>
+        <p>@Model.Scores.AccuracyScore / 10</p>
+    </div>
+
+    <div class="score-card">
+        <h3>Compliance</h3>
+        <p>@Model.Scores.ComplianceScore / 10</p>
+    </div>
+
+    <div class="score-card">
+        <h3>Risk</h3>
+        <p>@Model.Scores.RiskScore / 10</p>
+    </div>
+</section>
+
+<section class="feedback-grid">
+    <div class="feedback-card">
+        <h3>Document Type</h3>
+        <p>@Model.DocumentType</p>
+    </div>
+
+    <div class="feedback-card">
+        <h3>Confidence Score</h3>
+        <p>@Model.ConfidenceScore</p>
+    </div>
+
+    <div class="feedback-card full-width">
+        <h3>Summary</h3>
+        <p>@Model.Summary</p>
+    </div>
+
+    <div class="feedback-card">
+        <h3>Extracted Fields</h3>
+        <ul>
+            @foreach (var field in Model.ExtractedFields)
+            {
+                <li><strong>@field.Key:</strong> @field.Value</li>
+            }
+        </ul>
+    </div>
+
+    <div class="feedback-card">
+        <h3>Red Flags</h3>
+        <ul>
+            @foreach (var item in Model.RedFlags)
+            {
+                <li>@item</li>
+            }
+        </ul>
+    </div>
+
+    <div class="feedback-card full-width">
+        <h3>Corrections</h3>
+        <ul>
+            @foreach (var item in Model.Corrections)
+            {
+                <li>@item</li>
+            }
+        </ul>
+    </div>
+</section>

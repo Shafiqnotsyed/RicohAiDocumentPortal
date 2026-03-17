@@ -1,0 +1,32 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ricoh AI Document Portal</title>
+    <link rel="stylesheet" href="~/css/site.css" />
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="nav-brand">Ricoh AI Document Portal</div>
+            <ul class="nav-links">
+                <li><a asp-controller="Home" asp-action="Index">Home</a></li>
+                <li><a asp-controller="Account" asp-action="Login">Login</a></li>
+                <li><a asp-controller="Account" asp-action="Register">Sign Up</a></li>
+                <li><a asp-controller="Dashboard" asp-action="Index">Dashboard</a></li>
+                <li><a asp-controller="Document" asp-action="Feedback">Feedback</a></li>
+                <li><a asp-controller="Document" asp-action="Chat">Chat</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="main-content">
+        @RenderBody()
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2026 Ricoh AI Document Portal</p>
+    </footer>
+</body>
+</html>
