@@ -22,6 +22,12 @@ namespace RicohAiDocumentPortal.Services
             {
                 throw new InvalidOperationException("GEMINI_API_KEY is not set.");
             }
+            var apiKey1 = System.Environment.GetEnvironmentVariable("GEMINI_API_KEY");
+
+            if (string.IsNullOrWhiteSpace(apiKey))
+            {
+                throw new InvalidOperationException("GEMINI_API_KEY is not set.");
+            }
 
             var client = new Client(apiKey: apiKey);
 

@@ -1,0 +1,46 @@
+﻿@model RicohAiDocumentPortal.Models.AnalyzeDocumentResponse
+
+<h1>AI Feedback Result</h1>
+
+<p><strong>Document Type:</strong> @Model.DocumentType</p>
+<p><strong>Summary:</strong> @Model.Summary</p>
+<p><strong>Grade:</strong> @Model.Grade</p>
+<p><strong>Confidence:</strong> @Model.ConfidenceScore</p>
+
+<h2>Scores</h2>
+<ul>
+    <li>Overall: @Model.Scores.OverallScore / 10</li>
+    <li>Structure: @Model.Scores.StructureScore / 10</li>
+    <li>Completeness: @Model.Scores.CompletenessScore / 10</li>
+    <li>Accuracy: @Model.Scores.AccuracyScore / 10</li>
+    <li>Compliance: @Model.Scores.ComplianceScore / 10</li>
+    <li>Risk: @Model.Scores.RiskScore / 10</li>
+</ul>
+
+<h2>Extracted Fields</h2>
+<ul>
+    @foreach (var field in Model.ExtractedFields)
+    {
+        <li><strong>@field.Key:</strong> @field.Value</li>
+    }
+</ul>
+
+<h2>Red Flags</h2>
+<ul>
+    @foreach (var item in Model.RedFlags)
+    {
+        <li>@item</li>
+    }
+</ul>
+
+<h2>Corrections</h2>
+<ul>
+    @foreach (var item in Model.Corrections)
+    {
+        <li>@item</li>
+    }
+</ul>
+
+<p>
+    <a asp-controller="Document" asp-action="Feedback">Analyze another document</a>
+</p>

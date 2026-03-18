@@ -18,41 +18,53 @@ namespace RicohAiDocumentPortal.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Feedback()
+        public IActionResult Feedback()
         {
-            string sampleText = @"
-Invoice Number: INV-1001
-Supplier: ABC Supplies
-Invoice Date: 2026-03-13
-Total Amount: R 15,400.00
-Due Date: 2026-03-20
-Payment Terms: Net 7
-";
+            return View(new AnalyzeDocumentRequest());
+        }
 
-            var model = await _analysisService.AnalyzeAsync("sample.pdf", sampleText);
-            return View(model);
+        [HttpPost]
+        public async Task<IActionResult> Feedback(AnalyzeDocumentRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.DocumentText))
+            {
+                TempData["ErrorMessage"] = "Document text is required.";
+                return View(request);
+            }
+
+            var result = await _analysisService.AnalyzeAsync(
+                request.FileName,
+                request.DocumentText);
+
+            return View("FeedbackResult", result);
         }
 
         [HttpGet]
         public IActionResult Chat()
         {
-            return View(new ChatDocumentResponse());
+            return View(new ChatDocumentRequest());
         }
 
         [HttpPost]
-        public async Task<IActionResult> Chat(string question)
+        public async Task<IActionResult> Chat(ChatDocumentRequest request)
         {
-            string sampleText = @"
-Invoice Number: INV-1001
-Supplier: ABC Supplies
-Invoice Date: 2026-03-13
-Total Amount: R 15,400.00
-Due Date: 2026-03-20
-Payment Terms: Net 7
-";
+            if (string.IsNullOrWhiteSpace(request.DocumentText))
+            {
+                TempData["ErrorMessage"] = "Document text is required.";
+                return View(request);
+            }
 
-            var response = await _chatService.AskAsync(sampleText, question ?? string.Empty);
-            return View(response);
+            if (string.IsNullOrWhiteSpace(request.Question))
+            {
+                TempData["ErrorMessage"] = "Please enter a question.";
+                return View(request);
+            }
+
+            var response = await _chatService.AskAsync(
+                request.DocumentText,
+                request.Question);
+
+            return View("ChatResult", response);
         }
     }
 }
