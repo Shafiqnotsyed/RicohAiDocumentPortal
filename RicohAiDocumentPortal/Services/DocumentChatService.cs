@@ -1,6 +1,7 @@
 ﻿using Google.GenAI;
 using Microsoft.Extensions.Options;
 using RicohAiDocumentPortal.Models;
+using System.Reflection.Metadata;
 
 namespace RicohAiDocumentPortal.Services
 {
@@ -19,7 +20,10 @@ namespace RicohAiDocumentPortal.Services
 
             if (string.IsNullOrWhiteSpace(apiKey))
             {
-                throw new InvalidOperationException("GEMINI_API_KEY is not set.");
+                return new ChatDocumentResponse
+                {
+                    Answer = "AI service is currently unavailable because the Gemini API key is not set."
+                };
             }
 
             var client = new Client(apiKey: apiKey);
@@ -35,23 +39,46 @@ Document text:
 User question:
 {question}
 
-Answer clearly and professionally.
+Format your answer using HTML:
+
+- Use <h3> for headings
+- Use <ul><li> for bullet points
+- Use <p> for paragraphs
+
+Do NOT return markdown (no ### or **)
+
+- Clear paragraphs
+- Bullet points where helpful
+- Short sections with headings (e.g. ""Issues"", ""Improvements"")
+
+Do NOT return one long paragraph.
+
 If there are red flags, explain them.
 If the user asks how to improve the document, give practical corrections.
 ";
 
-            var response = await client.Models.GenerateContentAsync(
-                model: _settings.ModelName,
-                contents: prompt
-            );
-
-            string answer = response.Candidates?[0]?.Content?.Parts?[0]?.Text
-                ?? "No response received from Gemini.";
-
-            return new ChatDocumentResponse
+            try
             {
-                Answer = answer
-            };
+                var response = await client.Models.GenerateContentAsync(
+                    model: _settings.ModelName,
+                    contents: prompt
+                );
+
+                string answer = response.Candidates?[0]?.Content?.Parts?[0]?.Text
+                    ?? "No response received from Gemini.";
+
+                return new ChatDocumentResponse
+                {
+                    Answer = answer
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ChatDocumentResponse
+                {
+                    Answer = $"AI service is currently unavailable. Please try again later. Details: {ex.Message}"
+                };
+            }
         }
     }
 }

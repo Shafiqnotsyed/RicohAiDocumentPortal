@@ -1,46 +1,90 @@
 ﻿@model RicohAiDocumentPortal.Models.AnalyzeDocumentResponse
 
-<h1>AI Feedback Result</h1>
+<section class="feedback-container">
 
-<p><strong>Document Type:</strong> @Model.DocumentType</p>
-<p><strong>Summary:</strong> @Model.Summary</p>
-<p><strong>Grade:</strong> @Model.Grade</p>
-<p><strong>Confidence:</strong> @Model.ConfidenceScore</p>
+    <h1 class="page-title">AI Document Analysis</h1>
 
-<h2>Scores</h2>
-<ul>
-    <li>Overall: @Model.Scores.OverallScore / 10</li>
-    <li>Structure: @Model.Scores.StructureScore / 10</li>
-    <li>Completeness: @Model.Scores.CompletenessScore / 10</li>
-    <li>Accuracy: @Model.Scores.AccuracyScore / 10</li>
-    <li>Compliance: @Model.Scores.ComplianceScore / 10</li>
-    <li>Risk: @Model.Scores.RiskScore / 10</li>
-</ul>
+    <div class="feedback-card full-width summary-card">
+        <h2>Summary</h2>
+        <p>@Model.Summary</p>
+    </div>
 
-<h2>Extracted Fields</h2>
-<ul>
-    @foreach (var field in Model.ExtractedFields)
-    {
-        <li><strong>@field.Key:</strong> @field.Value</li>
-    }
-</ul>
+    <div class="feedback-grid top-info-grid">
+        <div class="feedback-card info-card type-card">
+            <h3>Document Type</h3>
+            <p>@Model.DocumentType</p>
+        </div>
 
-<h2>Red Flags</h2>
-<ul>
-    @foreach (var item in Model.RedFlags)
-    {
-        <li>@item</li>
-    }
-</ul>
+        <div class="feedback-card info-card grade-card">
+            <h3>Grade</h3>
+            <p class="grade @Model.Grade.Replace(" ", "")">@Model.Grade</p>
+        </div>
 
-<h2>Corrections</h2>
-<ul>
-    @foreach (var item in Model.Corrections)
-    {
-        <li>@item</li>
-    }
-</ul>
+        <div class="feedback-card info-card confidence-card">
+            <h3>Confidence</h3>
+            <p>@Model.ConfidenceScore</p>
+        </div>
+    </div>
 
-<p>
-    <a asp-controller="Document" asp-action="Feedback">Analyze another document</a>
-</p>
+    <div class="feedback-card full-width score-section">
+        <h2>Scores</h2>
+
+        <div class="score-bar">
+            <span>Overall (@Model.Scores.OverallScore / 10)</span>
+            <div class="bar blue">
+                <div class="fill" style="width:@(Model.Scores.OverallScore * 10)%"></div>
+            </div>
+        </div>
+
+        <div class="score-bar">
+            <span>Risk (@Model.Scores.RiskScore / 10)</span>
+            <div class="bar red">
+                <div class="fill" style="width:@(Model.Scores.RiskScore * 10)%"></div>
+            </div>
+        </div>
+
+        <div class="score-bar">
+            <span>Completeness (@Model.Scores.CompletenessScore / 10)</span>
+            <div class="bar green">
+                <div class="fill" style="width:@(Model.Scores.CompletenessScore * 10)%"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="feedback-grid two-card-layout">
+        <div class="feedback-card neutral">
+            <h2>Extracted Fields</h2>
+            <ul>
+                @foreach (var field in Model.ExtractedFields)
+                {
+                    <li><strong>@field.Key:</strong> @field.Value</li>
+                }
+            </ul>
+        </div>
+
+        <div class="feedback-card red">
+            <h2>Red Flags</h2>
+            <ul>
+                @foreach (var item in Model.RedFlags)
+                {
+                    <li>@item</li>
+                }
+            </ul>
+        </div>
+
+        <div class="feedback-card green full-width">
+            <h2>Corrections</h2>
+            <ul>
+                @foreach (var item in Model.Corrections)
+                {
+                    <li>@item</li>
+                }
+            </ul>
+        </div>
+    </div>
+
+    <div class="result-actions">
+        <a asp-action="Feedback" class="btn-primary">Analyze Another Document</a>
+    </div>
+
+</section>

@@ -1,7 +1,7 @@
 using RicohAiDocumentPortal.Models;
 using RicohAiDocumentPortal.Services;
 
-var builder = WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateBuilder(args);   
 
 builder.Services.AddControllersWithViews();
 

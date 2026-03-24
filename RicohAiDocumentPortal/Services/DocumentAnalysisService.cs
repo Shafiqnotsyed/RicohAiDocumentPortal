@@ -20,13 +20,35 @@ namespace RicohAiDocumentPortal.Services
 
             if (string.IsNullOrWhiteSpace(apiKey))
             {
-                throw new InvalidOperationException("GEMINI_API_KEY is not set.");
-            }
-            var apiKey1 = System.Environment.GetEnvironmentVariable("GEMINI_API_KEY");
-
-            if (string.IsNullOrWhiteSpace(apiKey))
-            {
-                throw new InvalidOperationException("GEMINI_API_KEY is not set.");
+                return new AnalyzeDocumentResponse
+                {
+                    DocumentType = "Unavailable",
+                    Summary = "The AI service could not start because the Gemini API key is not set.",
+                    ExtractedFields = new Dictionary<string, string>
+                    {
+                        { "Error", "GEMINI_API_KEY is not set." }
+                    },
+                    Scores = new DocumentScores
+                    {
+                        OverallScore = 0,
+                        StructureScore = 0,
+                        CompletenessScore = 0,
+                        AccuracyScore = 0,
+                        ComplianceScore = 0,
+                        RiskScore = 0
+                    },
+                    Grade = "Unavailable",
+                    RedFlags = new List<string>
+                    {
+                        "AI service is temporarily unavailable."
+                    },
+                    Corrections = new List<string>
+                    {
+                        "Check that the Gemini API key is configured correctly.",
+                        "Restart the application after updating environment variables."
+                    },
+                    ConfidenceScore = 0.0
+                };
             }
 
             var client = new Client(apiKey: apiKey);
@@ -81,33 +103,68 @@ Document Text:
 {documentText}
 ";
 
-            var response = await client.Models.GenerateContentAsync(
-                model: _settings.ModelName,
-                contents: prompt
-            );
-
-            string? json = response.Candidates?[0]?.Content?.Parts?[0]?.Text?.Trim();
-
-            if (string.IsNullOrWhiteSpace(json))
+            try
             {
-                throw new InvalidOperationException("Gemini returned an empty response.");
+                var response = await client.Models.GenerateContentAsync(
+                    model: _settings.ModelName,
+                    contents: prompt
+                );
+
+                string? json = response.Candidates?[0]?.Content?.Parts?[0]?.Text?.Trim();
+
+                if (string.IsNullOrWhiteSpace(json))
+                {
+                    throw new InvalidOperationException("Gemini returned an empty response.");
+                }
+
+                json = ExtractJson(json);
+
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                };
+
+                var result = JsonSerializer.Deserialize<AnalyzeDocumentResponse>(json, options);
+
+                if (result == null)
+                {
+                    throw new InvalidOperationException("Failed to parse Gemini response.");
+                }
+
+                return result;
             }
-
-            json = ExtractJson(json);
-
-            var options = new JsonSerializerOptions
+            catch (Exception ex)
             {
-                PropertyNameCaseInsensitive = true
-            };
-
-            var result = JsonSerializer.Deserialize<AnalyzeDocumentResponse>(json, options);
-
-            if (result == null)
-            {
-                throw new InvalidOperationException("Failed to parse Gemini response.");
+                return new AnalyzeDocumentResponse
+                {
+                    DocumentType = "Unavailable",
+                    Summary = "The AI service is currently unavailable, but your request was received.",
+                    ExtractedFields = new Dictionary<string, string>
+                    {
+                        { "Error", ex.Message }
+                    },
+                    Scores = new DocumentScores
+                    {
+                        OverallScore = 0,
+                        StructureScore = 0,
+                        CompletenessScore = 0,
+                        AccuracyScore = 0,
+                        ComplianceScore = 0,
+                        RiskScore = 0
+                    },
+                    Grade = "Unavailable",
+                    RedFlags = new List<string>
+                    {
+                        "AI service is temporarily unavailable."
+                    },
+                    Corrections = new List<string>
+                    {
+                        "Please try again later.",
+                        "Check internet connection and Gemini API availability."
+                    },
+                    ConfidenceScore = 0.0
+                };
             }
-
-            return result;
         }
 
         private static string ExtractJson(string text)

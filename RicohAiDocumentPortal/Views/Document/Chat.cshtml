@@ -1,22 +1,79 @@
 ﻿@model RicohAiDocumentPortal.Models.ChatDocumentRequest
 
-<h1>Chat with Document</h1>
+<section class="chat-container">
+    <h1 class="page-title">AI Chat Assistant</h1>
+    <p class="chat-subtitle">
+        Ask questions about your document and receive AI-powered insights, risk detection, and improvement suggestions.
+    </p>
 
-@if (TempData["ErrorMessage"] != null)
-{
-    <p style="color:red;">@TempData["ErrorMessage"]</p>
-}
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="chat-alert">
+            @TempData["ErrorMessage"]
+        </div>
+    }
 
-<form asp-action="Chat" method="post">
-    <div>
-        <label asp-for="DocumentText"></label>
-        <textarea asp-for="DocumentText" rows="12" cols="80"></textarea>
+    <div class="chat-card">
+        <div class="chat-empty">
+            💬 Ask a question about your document to get started
+        </div>
+
+        <form asp-action="Chat" method="post" class="chat-form" id="chatForm">
+            <div class="form-group">
+                <label asp-for="DocumentText" class="chat-label">Document Text</label>
+                <textarea asp-for="DocumentText"
+                          class="chat-textarea"
+                          rows="14"
+                          placeholder="Paste extracted document text here..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Question" class="chat-label">Your Question</label>
+                <input asp-for="Question"
+                       class="chat-input"
+                       placeholder="e.g. What risks are in this document?" />
+            </div>
+
+            <button type="submit" class="btn-primary" id="chatSubmitBtn">
+                Ask AI
+            </button>
+        </form>
     </div>
+</section>
 
-    <div>
-        <label asp-for="Question"></label>
-        <input asp-for="Question" />
+<div id="chatLoadingOverlay" class="loading-overlay hidden">
+    <div class="loading-card">
+        <div class="loading-title">Generating AI response...</div>
+        <div class="loading-subtitle">Please wait while the assistant prepares an answer.</div>
+
+        <div class="skeleton-block skeleton-title"></div>
+        <div class="skeleton-block skeleton-line"></div>
+        <div class="skeleton-block skeleton-line"></div>
+        <div class="skeleton-block skeleton-line short"></div>
+
+        <div class="loading-dots">
+            <span></span><span></span><span></span>
+        </div>
     </div>
+</div>
 
-    <button type="submit">Ask AI</button>
-</form>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const chatForm = document.getElementById("chatForm");
+        const chatOverlay = document.getElementById("chatLoadingOverlay");
+        const chatButton = document.getElementById("chatSubmitBtn");
+
+        if (chatForm) {
+            chatForm.addEventListener("submit", function () {
+                if (chatOverlay) {
+                    chatOverlay.classList.remove("hidden");
+                }
+
+                if (chatButton) {
+                    chatButton.disabled = true;
+                    chatButton.innerText = "Thinking...";
+                }
+            });
+        }
+    });
+</script>
