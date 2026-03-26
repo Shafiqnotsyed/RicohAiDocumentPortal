@@ -74,7 +74,7 @@ Your tasks:
    - RiskScore
 7. Assign a Grade using one of:
    Excellent, Good, Needs Improvement, Poor, High Risk
-8. Provide ConfidenceScore between 0 and 1
+8. Provide ConfidenceScore between 0 and 5
 
 Return VALID JSON ONLY using exactly this structure:
 {{

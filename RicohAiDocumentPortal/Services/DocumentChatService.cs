@@ -1,7 +1,6 @@
 ﻿using Google.GenAI;
 using Microsoft.Extensions.Options;
 using RicohAiDocumentPortal.Models;
-using System.Reflection.Metadata;
 
 namespace RicohAiDocumentPortal.Services
 {
@@ -39,22 +38,34 @@ Document text:
 User question:
 {question}
 
-Format your answer using HTML:
+Format your answer using clean HTML.
 
-- Use <h3> for headings
-- Use <ul><li> for bullet points
-- Use <p> for paragraphs
+Allowed tags:
+<h3>, <p>, <ul>, <ol>, <li>, <strong>, <table>, <thead>, <tbody>, <tr>, <th>, <td>
 
-Do NOT return markdown (no ### or **)
+Formatting rules:
+- Use <h3> for section headings
+- Use <p> for short paragraphs
+- Use <ul><li> or <ol><li> for lists
+- Use <strong> only for emphasis where useful
+- Use tables only when they genuinely improve clarity, such as:
+  - itemized cost breakdowns
+  - comparisons
+  - missing vs present information
+  - structured invoice examples
+- Do NOT use tables unless they add real value
+- Do NOT return markdown
+- Do NOT show raw HTML tags as text
+- Do NOT output example markup such as <table>...</table> as plain text
+- Do NOT include empty bullet points
+- Keep the answer concise, structured, and professional
+- Avoid excessive spacing
+- Do NOT return one long paragraph
 
-- Clear paragraphs
-- Bullet points where helpful
-- Short sections with headings (e.g. ""Issues"", ""Improvements"")
-
-Do NOT return one long paragraph.
-
-If there are red flags, explain them.
-If the user asks how to improve the document, give practical corrections.
+Content rules:
+- If there are red flags, explain them clearly
+- If the user asks how to improve the document, give practical corrections
+- If a breakdown helps, present it clearly using bullets or a simple table
 ";
 
             try

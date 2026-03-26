@@ -51,8 +51,8 @@
         </div>
     </div>
 
-    <div class="feedback-grid two-card-layout">
-        <div class="feedback-card neutral">
+    <div class="feedback-stack-layout">
+        <div class="feedback-card neutral full-width-card">
             <h2>Extracted Fields</h2>
             <ul>
                 @foreach (var field in Model.ExtractedFields)
@@ -62,7 +62,7 @@
             </ul>
         </div>
 
-        <div class="feedback-card red">
+        <div class="feedback-card red full-width-card">
             <h2>Red Flags</h2>
             <ul>
                 @foreach (var item in Model.RedFlags)
@@ -72,7 +72,7 @@
             </ul>
         </div>
 
-        <div class="feedback-card green full-width">
+        <div class="feedback-card green full-width-card">
             <h2>Corrections</h2>
             <ul>
                 @foreach (var item in Model.Corrections)

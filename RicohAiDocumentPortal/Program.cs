@@ -1,7 +1,7 @@
 using RicohAiDocumentPortal.Models;
 using RicohAiDocumentPortal.Services;
 
-var builder = WebApplication.CreateBuilder(args);   
+var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
 
@@ -10,6 +10,9 @@ builder.Services.Configure<GeminiSettings>(
 
 builder.Services.AddScoped<IDocumentAnalysisService, DocumentAnalysisService>();
 builder.Services.AddScoped<IDocumentChatService, DocumentChatService>();
+
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession();
 
 var app = builder.Build();
 
@@ -23,6 +26,8 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+
+app.UseSession();
 
 app.UseAuthorization();
 

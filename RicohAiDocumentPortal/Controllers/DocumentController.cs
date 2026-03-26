@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using RicohAiDocumentPortal.Models;
 using RicohAiDocumentPortal.Services;
+using System.Text.Json;
 
 namespace RicohAiDocumentPortal.Controllers
 {
@@ -8,6 +9,9 @@ namespace RicohAiDocumentPortal.Controllers
     {
         private readonly IDocumentAnalysisService _analysisService;
         private readonly IDocumentChatService _chatService;
+
+        private const string ChatHistoryKey = "ChatHistory";
+        private const string ChatDocumentKey = "ChatDocument";
 
         public DocumentController(
             IDocumentAnalysisService analysisService,
@@ -42,29 +46,78 @@ namespace RicohAiDocumentPortal.Controllers
         [HttpGet]
         public IActionResult Chat()
         {
-            return View(new ChatDocumentRequest());
+            var model = new ChatConversationViewModel
+            {
+                DocumentText = HttpContext.Session.GetString(ChatDocumentKey) ?? string.Empty,
+                Messages = GetChatHistory()
+            };
+
+            return View(model);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Chat(ChatDocumentRequest request)
+        public async Task<IActionResult> Chat(ChatConversationViewModel request)
         {
             if (string.IsNullOrWhiteSpace(request.DocumentText))
             {
                 TempData["ErrorMessage"] = "Document text is required.";
+                request.Messages = GetChatHistory();
                 return View(request);
             }
 
             if (string.IsNullOrWhiteSpace(request.Question))
             {
                 TempData["ErrorMessage"] = "Please enter a question.";
+                request.Messages = GetChatHistory();
                 return View(request);
             }
+
+            var history = GetChatHistory();
+
+            history.Add(new ChatMessage
+            {
+                Sender = "User",
+                Text = request.Question
+            });
 
             var response = await _chatService.AskAsync(
                 request.DocumentText,
                 request.Question);
 
-            return View("ChatResult", response);
+            history.Add(new ChatMessage
+            {
+                Sender = "AI",
+                Text = response.Answer
+            });
+
+            SaveChatHistory(history);
+            HttpContext.Session.SetString(ChatDocumentKey, request.DocumentText);
+
+            return RedirectToAction("Chat");
+        }
+
+        [HttpPost]
+        public IActionResult ResetChat()
+        {
+            HttpContext.Session.Remove(ChatHistoryKey);
+            HttpContext.Session.Remove(ChatDocumentKey);
+            return RedirectToAction("Chat");
+        }
+
+        private List<ChatMessage> GetChatHistory()
+        {
+            var json = HttpContext.Session.GetString(ChatHistoryKey);
+
+            if (string.IsNullOrWhiteSpace(json))
+                return new List<ChatMessage>();
+
+            return JsonSerializer.Deserialize<List<ChatMessage>>(json) ?? new List<ChatMessage>();
+        }
+
+        private void SaveChatHistory(List<ChatMessage> history)
+        {
+            var json = JsonSerializer.Serialize(history);
+            HttpContext.Session.SetString(ChatHistoryKey, json);
         }
     }
 }

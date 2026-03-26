@@ -1,9 +1,9 @@
-﻿@model RicohAiDocumentPortal.Models.ChatDocumentRequest
+﻿@model RicohAiDocumentPortal.Models.ChatConversationViewModel
 
 <section class="chat-container">
     <h1 class="page-title">AI Chat Assistant</h1>
     <p class="chat-subtitle">
-        Ask questions about your document and receive AI-powered insights, risk detection, and improvement suggestions.
+        Ask follow-up questions about your document without re-entering the text each time.
     </p>
 
     @if (TempData["ErrorMessage"] != null)
@@ -14,30 +14,81 @@
     }
 
     <div class="chat-card">
-        <div class="chat-empty">
-            💬 Ask a question about your document to get started
-        </div>
-
         <form asp-action="Chat" method="post" class="chat-form" id="chatForm">
             <div class="form-group">
                 <label asp-for="DocumentText" class="chat-label">Document Text</label>
                 <textarea asp-for="DocumentText"
                           class="chat-textarea"
-                          rows="14"
                           placeholder="Paste extracted document text here..."></textarea>
             </div>
 
-            <div class="form-group">
-                <label asp-for="Question" class="chat-label">Your Question</label>
-                <input asp-for="Question"
-                       class="chat-input"
-                       placeholder="e.g. What risks are in this document?" />
+            <div class="chat-thread" id="chatThread">
+                @if (Model.Messages != null && Model.Messages.Any())
+                {
+                    for (int i = 0; i < Model.Messages.Count; i++)
+                    {
+                        var message = Model.Messages[i];
+                        var isUser = message.Sender == "User";
+                        var isLastAi = !isUser && i == Model.Messages.Count - 1;
+
+                        <div id="@(isLastAi ? "latestAiMessage" : null)"
+                             class="message-row @(isUser ? "user-row" : "ai-row")">
+                            <div class="message-bubble @(isUser ? "user-bubble" : "ai-bubble")">
+                                <div class="message-sender">@message.Sender</div>
+
+                                @if (isUser)
+                                {
+                                    <div class="message-text">
+                                        @message.Text
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="message-text @(isLastAi ? "typing-answer" : "rendered-answer")"
+                                         data-html='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(message.Text))'></div>
+                                }
+
+                                @if (!isUser)
+                                {
+                                    <button type="button"
+                                            class="copy-btn"
+                                            onclick="copyMessage(this)"
+                                            data-text="@message.Text">
+                                        Copy Text
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="chat-empty">
+                        💬 Start by pasting document text and asking your first question
+                    </div>
+                }
             </div>
 
-            <button type="submit" class="btn-primary" id="chatSubmitBtn">
-                Ask AI
-            </button>
+            <div class="form-group">
+                <label asp-for="Question" class="chat-label">Ask a Question</label>
+                <input asp-for="Question"
+                       class="chat-input"
+                       placeholder="Type your question here..." />
+            </div>
+
+            <div class="chat-actions-row">
+                <button type="submit" class="btn-primary" id="chatSubmitBtn">
+                    Ask AI
+                </button>
+            </div>
         </form>
+
+        @if (Model.Messages != null && Model.Messages.Any())
+        {
+            <form asp-action="ResetChat" method="post" class="reset-chat-form">
+                <button type="submit" class="btn-secondary">Start New Conversation</button>
+            </form>
+        }
     </div>
 </section>
 
@@ -63,6 +114,184 @@
         const chatOverlay = document.getElementById("chatLoadingOverlay");
         const chatButton = document.getElementById("chatSubmitBtn");
 
+        function scrollToLatestAi() {
+            const latestAiMessage = document.getElementById("latestAiMessage");
+            if (latestAiMessage) {
+                latestAiMessage.scrollIntoView({
+                    behavior: "smooth",
+                    block: "end"
+                });
+            }
+        }
+
+        function renderHtmlIntoTarget(target, html, animated) {
+            const tempContainer = document.createElement("div");
+            tempContainer.innerHTML = html;
+
+            const nodes = Array.from(tempContainer.childNodes);
+            let nodeIndex = 0;
+            const speed = 16;
+
+            function typeTextIntoElement(element, text, callback) {
+                let i = 0;
+
+                function step() {
+                    if (i < text.length) {
+                        element.textContent += text.charAt(i);
+                        scrollToLatestAi();
+                        i++;
+                        setTimeout(step, speed);
+                    } else {
+                        callback();
+                    }
+                }
+
+                step();
+            }
+
+            function appendNodeInstantly(sourceNode, parent) {
+                if (sourceNode.nodeType === Node.TEXT_NODE) {
+                    if (sourceNode.textContent.trim() === "") return;
+                    const p = document.createElement("p");
+                    p.textContent = sourceNode.textContent.trim();
+                    parent.appendChild(p);
+                    return;
+                }
+
+                if (sourceNode.nodeType !== Node.ELEMENT_NODE) return;
+
+                const tag = sourceNode.tagName.toLowerCase();
+
+                if (tag === "h1" || tag === "h2" || tag === "h3" || tag === "h4" || tag === "p") {
+                    const el = document.createElement(tag);
+                    el.textContent = sourceNode.textContent.trim();
+                    parent.appendChild(el);
+                    return;
+                }
+
+                if (tag === "ul" || tag === "ol") {
+                    const list = document.createElement(tag);
+                    const items = Array.from(sourceNode.children);
+
+                    items.forEach(item => {
+                        const li = document.createElement("li");
+                        li.textContent = item.textContent.trim();
+                        list.appendChild(li);
+                    });
+
+                    parent.appendChild(list);
+                    return;
+                }
+
+                if (tag === "table") {
+                    parent.appendChild(sourceNode.cloneNode(true));
+                    return;
+                }
+
+                if (tag === "br") {
+                    parent.appendChild(document.createElement("br"));
+                    return;
+                }
+
+                const fallback = document.createElement("p");
+                fallback.textContent = sourceNode.textContent.trim();
+                parent.appendChild(fallback);
+            }
+
+            function processNextNode() {
+                if (nodeIndex >= nodes.length) {
+                    scrollToLatestAi();
+                    return;
+                }
+
+                const node = nodes[nodeIndex];
+                nodeIndex++;
+
+                if (!animated) {
+                    appendNodeInstantly(node, target);
+                    processNextNode();
+                    return;
+                }
+
+                if (node.nodeType === Node.TEXT_NODE) {
+                    if (node.textContent.trim() === "") {
+                        processNextNode();
+                        return;
+                    }
+
+                    const p = document.createElement("p");
+                    target.appendChild(p);
+                    typeTextIntoElement(p, node.textContent.trim(), processNextNode);
+                    return;
+                }
+
+                if (node.nodeType === Node.ELEMENT_NODE) {
+                    const tag = node.tagName.toLowerCase();
+
+                    if (tag === "h1" || tag === "h2" || tag === "h3" || tag === "h4") {
+                        const heading = document.createElement(tag);
+                        target.appendChild(heading);
+                        typeTextIntoElement(heading, node.textContent.trim(), processNextNode);
+                        return;
+                    }
+
+                    if (tag === "p") {
+                        const p = document.createElement("p");
+                        target.appendChild(p);
+                        typeTextIntoElement(p, node.textContent.trim(), processNextNode);
+                        return;
+                    }
+
+                    if (tag === "ul" || tag === "ol") {
+                        const list = document.createElement(tag);
+                        target.appendChild(list);
+
+                        const items = Array.from(node.children);
+                        let itemIndex = 0;
+
+                        function processListItem() {
+                            if (itemIndex >= items.length) {
+                                processNextNode();
+                                return;
+                            }
+
+                            const sourceItem = items[itemIndex];
+                            itemIndex++;
+
+                            const li = document.createElement("li");
+                            list.appendChild(li);
+
+                            typeTextIntoElement(li, sourceItem.textContent.trim(), processListItem);
+                        }
+
+                        processListItem();
+                        return;
+                    }
+
+                    if (tag === "table") {
+                        target.appendChild(node.cloneNode(true));
+                        processNextNode();
+                        return;
+                    }
+
+                    if (tag === "br") {
+                        target.appendChild(document.createElement("br"));
+                        processNextNode();
+                        return;
+                    }
+
+                    const fallback = document.createElement("p");
+                    target.appendChild(fallback);
+                    typeTextIntoElement(fallback, node.textContent.trim(), processNextNode);
+                    return;
+                }
+
+                processNextNode();
+            }
+
+            processNextNode();
+        }
+
         if (chatForm) {
             chatForm.addEventListener("submit", function () {
                 if (chatOverlay) {
@@ -75,5 +304,38 @@
                 }
             });
         }
+
+        document.querySelectorAll(".rendered-answer[data-html]").forEach(target => {
+            const html = JSON.parse(target.getAttribute("data-html"));
+            renderHtmlIntoTarget(target, html, false);
+        });
+
+        const typingTarget = document.querySelector(".typing-answer[data-html]");
+        if (typingTarget) {
+            const finalHtml = JSON.parse(typingTarget.getAttribute("data-html"));
+            renderHtmlIntoTarget(typingTarget, finalHtml, true);
+        }
+
+        setTimeout(scrollToLatestAi, 200);
     });
+
+    async function copyMessage(button) {
+        const text = button.getAttribute("data-text");
+
+        try {
+            const temp = document.createElement("div");
+            temp.innerHTML = text;
+            const plainText = temp.textContent || temp.innerText || "";
+
+            await navigator.clipboard.writeText(plainText);
+
+            const original = button.innerText;
+            button.innerText = "Copied!";
+            setTimeout(() => button.innerText = original, 1500);
+        } catch {
+            const original = button.innerText;
+            button.innerText = "Copy failed";
+            setTimeout(() => button.innerText = original, 1500);
+        }
+    }
 </script>
