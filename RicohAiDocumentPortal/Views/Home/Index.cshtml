@@ -1,30 +1,47 @@
-﻿<section class="hero">
-    <div class="hero-card">
-        <h1>Ricoh AI Document Portal</h1>
+﻿<div class="home-hero">
+
+    <h1 class="hero-title">Ricoh AI Document Portal</h1>
+
+    <p class="hero-subtitle">
+        Securely upload, analyze, and interact with your business documents using powerful AI insights.
+    </p>
+
+    <div class="hero-buttons">
+        <a asp-controller="Account" asp-action="Login" class="btn-primary">Login</a>
+        <a asp-controller="Dashboard" asp-action="Index" class="btn-secondary">Go to Dashboard</a>
+    </div>
+
+</div>
+
+<!-- FEATURES SECTION -->
+<div class="home-features">
+
+    <div class="feature-card">
+        <h2>📄 Smart Document Analysis</h2>
         <p>
-            Securely upload, analyze, and interact with company documents using AI-powered insights.
+            Automatically extract key data, identify document types, detect risks, and score documents with AI precision.
         </p>
-
-        <div class="hero-buttons">
-            <a class="btn-primary" asp-controller="Account" asp-action="Login">Login</a>
-            <a class="btn-secondary" asp-controller="Account" asp-action="Register">Sign Up</a>
-        </div>
-    </div>
-</section>
-
-<section class="features">
-    <div class="feature-card">
-        <h3>Document Analysis</h3>
-        <p>Extract data, identify document type, detect red flags, and score documents out of 10.</p>
     </div>
 
     <div class="feature-card">
-        <h3>AI Feedback</h3>
-        <p>Receive suggested corrections, confidence ratings, and a quality breakdown.</p>
+        <h2>⚠️ Risk Detection</h2>
+        <p>
+            Detect inconsistencies, missing fields, and potential compliance issues in invoices and business documents.
+        </p>
     </div>
 
     <div class="feature-card">
-        <h3>Document Chat</h3>
-        <p>Ask AI questions about invoices, contracts, quotes, purchase orders, and bank statements.</p>
+        <h2>📊 AI Feedback & Insights</h2>
+        <p>
+            Receive intelligent feedback, corrections, and confidence scores to improve document quality instantly.
+        </p>
     </div>
-</section>
+
+    <div class="feature-card">
+        <h2>💬 AI Chat Assistant</h2>
+        <p>
+            Ask questions about your documents and receive real-time AI-powered explanations and guidance.
+        </p>
+    </div>
+
+</div>

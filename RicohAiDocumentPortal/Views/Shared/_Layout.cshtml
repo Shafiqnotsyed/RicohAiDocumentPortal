@@ -13,13 +13,18 @@
                 <a asp-controller="Home" asp-action="Index" class="brand-link">Ricoh AI Document Portal</a>
             </div>
 
-            <ul class="nav-links">
+            <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation">
+                ☰
+            </button>
+
+            <ul class="nav-links" id="navMenu">
                 <li><a asp-controller="Home" asp-action="Index">Home</a></li>
                 <li><a asp-controller="Account" asp-action="Login">Login</a></li>
                 <li><a asp-controller="Account" asp-action="Register">Sign Up</a></li>
                 <li><a asp-controller="Dashboard" asp-action="Index">Dashboard</a></li>
                 <li><a asp-controller="Document" asp-action="Feedback">Feedback</a></li>
                 <li><a asp-controller="Document" asp-action="Chat">Chat</a></li>
+                <li><a asp-controller="Profile" asp-action="Index">Profile</a></li>
             </ul>
         </nav>
     </header>
@@ -33,5 +38,18 @@
     <footer class="footer">
         <p>&copy; 2026 Ricoh AI Document Portal. All rights reserved.</p>
     </footer>
+
+    <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                const navToggle = document.getElementById("navToggle");
+                const navMenu = document.getElementById("navMenu");
+
+                if (navToggle && navMenu) {
+                    navToggle.addEventListener("click", function () {
+                        navMenu.classList.toggle("show");
+                    });
+                }
+            });
+    </script>
 </body>
 </html>
