@@ -8,7 +8,7 @@ body {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
-    background: #000000; /* fallback */
+    background: #000000;
     color: #ffffff;
 }
 
@@ -24,6 +24,23 @@ body {
     align-items: center;
     padding: 16px 32px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    box-sizing: border-box;
+    z-index: 1000;
+    transition: transform 0.28s ease;
+}
+
+.navbar-hidden {
+    transform: translateY(-100%);
+}
+
+#mainNavbar {
+    will-change: transform;
+    transition: transform 0.28s ease;
 }
 
 .nav-brand {
@@ -97,6 +114,7 @@ body {
 
 .page-shell {
     flex: 1;
+    padding-top: 88px;
     background: radial-gradient(circle at top, rgba(223, 37, 49, 0.25), transparent 50%), linear-gradient(180deg, #000000 0%, #2a0c0c 40%, #5c1212 100%);
 }
 
@@ -174,15 +192,13 @@ body {
     padding: 30px;
     margin-bottom: 28px;
     border: 1px solid rgba(255, 255, 255, 0.08);
-    animation: goldGlow 2.5s ease-in-out infinite;
     transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
 }
 
     .feedback-card::before,
-    .chat-box::before,
-    .chat-card::before {
+    .chat-box::before {
         content: "";
         position: absolute;
         top: 0;
@@ -194,14 +210,12 @@ body {
     }
 
     .feedback-card:hover::before,
-    .chat-box:hover::before,
-    .chat-card:hover::before {
+    .chat-box:hover::before {
         left: 100%;
     }
 
     .feedback-card:hover,
-    .chat-box:hover,
-    .chat-card:hover {
+    .chat-box:hover {
         transform: translateY(-6px) scale(1.01);
         box-shadow: 0 15px 40px rgba(0, 0, 0, 0.7), 0 0 20px rgba(255, 200, 0, 0.15);
     }
@@ -359,6 +373,24 @@ body {
         box-shadow: 0 10px 25px rgba(223, 37, 49, 0.6);
     }
 
+.btn-secondary {
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.10);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.22);
+    padding: 12px 22px;
+    border-radius: 12px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.18);
+}
+
+    .btn-secondary:hover {
+        background: rgba(255,255,255,0.18);
+        transform: translateY(-2px);
+    }
+
 /* =========================
    SCORES
    ========================= */
@@ -460,38 +492,32 @@ body {
     max-width: 72%;
     padding: 18px 20px;
     border-radius: 18px;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.18);
     position: relative;
-    overflow: hidden;
-    animation: goldGlow 2.5s ease-in-out infinite;
+    overflow: visible;
+    animation: none !important;
+    transition: background 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
 }
 
     .message-bubble::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 120%;
-        height: 100%;
-        background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.08), transparent);
-        transition: 0.6s;
+        content: none !important;
     }
 
-    .message-bubble:hover::before {
-        left: 100%;
+    .message-bubble:hover {
+        transform: translateY(-2px);
     }
 
 .user-bubble {
     background: rgba(0, 0, 0, 0.45);
     border: 1px solid rgba(255,255,255,0.12);
     color: white;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
 }
 
 .ai-bubble {
     background: linear-gradient(135deg, #df2531 0%, #b71c1c 50%, #7a0f0f 100%);
     color: white;
     border: 1px solid rgba(255,255,255,0.08);
-    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.25), 0 0 12px rgba(255, 200, 0, 0.10);
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.22);
 }
 
 .message-sender {
@@ -558,11 +584,9 @@ body {
     margin-top: 14px;
 }
 
-    .reset-chat-form .btn-secondary {
-        padding: 12px 22px;
-        border-radius: 12px;
-        border: none;
-        cursor: pointer;
+    .reset-chat-form .btn-secondary:hover {
+        background: rgba(255,255,255,0.18);
+        transform: translateY(-2px);
     }
 
 .typing-answer {
@@ -920,9 +944,14 @@ body {
     }
 
     .navbar {
-        position: relative;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
         flex-wrap: wrap;
         padding: 16px 20px;
+        box-sizing: border-box;
     }
 
     .nav-toggle {
@@ -1070,10 +1099,15 @@ body {
     .nav-links {
         display: flex !important;
     }
+
+        .nav-links.show {
+            display: flex !important;
+        }
 }
-/*
+
+/* =========================
    FOOTER
-*/
+   ========================= */
 
 .footer {
     width: 100%;
@@ -1088,7 +1122,6 @@ body {
    HOME PAGE
    ========================= */
 
-/* HERO */
 .home-hero {
     text-align: center;
     padding: 80px 20px 60px;
@@ -1108,7 +1141,6 @@ body {
     line-height: 1.6;
 }
 
-/* BUTTONS */
 .hero-buttons {
     display: flex;
     justify-content: center;
@@ -1116,21 +1148,6 @@ body {
     flex-wrap: wrap;
 }
 
-.btn-secondary {
-    background: transparent;
-    border: 1px solid rgba(255,255,255,0.3);
-    color: white;
-    padding: 12px 26px;
-    border-radius: 12px;
-    text-decoration: none;
-    transition: 0.25s ease;
-}
-
-    .btn-secondary:hover {
-        background: rgba(255,255,255,0.1);
-    }
-
-/* FEATURES */
 .home-features {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -1157,4 +1174,149 @@ body {
     .feature-card p {
         color: #fff8f8;
         line-height: 1.6;
+    }
+
+/* =========================
+   CHAT CONVERSATION PAGE STABILITY
+   ========================= */
+
+.chat-container {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+.chat-card {
+    animation: none !important;
+    overflow: visible !important;
+    box-shadow: 0 12px 34px rgba(0, 0, 0, 0.38);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+    .chat-card::before {
+        content: none !important;
+    }
+
+    .chat-card:hover {
+        transform: none;
+        box-shadow: 0 12px 34px rgba(0, 0, 0, 0.38);
+    }
+
+    .chat-card .form-group {
+        width: 100%;
+        max-width: 760px;
+        margin: 0 auto 22px auto;
+        padding: 18px 18px 16px 18px;
+        border-radius: 18px;
+        background: rgba(0, 0, 0, 0.18);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 8px 18px rgba(0, 0, 0, 0.20);
+    }
+
+        .chat-card .form-group::before {
+            content: none;
+        }
+
+/* =========================
+   PREMIUM GLOW / SHINE
+   Only for pages marked with .premium-page
+   ========================= */
+
+.premium-page .feedback-card,
+.premium-page .chat-box,
+.premium-page .form-group {
+    animation: goldGlow 2.5s ease-in-out infinite;
+    position: relative;
+    overflow: hidden;
+}
+
+    .premium-page .feedback-card::before,
+    .premium-page .chat-box::before,
+    .premium-page .form-group::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 120%;
+        height: 100%;
+        background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+        transition: 0.6s;
+        pointer-events: none;
+    }
+
+    .premium-page .feedback-card:hover::before,
+    .premium-page .chat-box:hover::before,
+    .premium-page .form-group:hover::before {
+        left: 100%;
+    }
+
+    .premium-page .feedback-card:hover,
+    .premium-page .chat-box:hover,
+    .premium-page .form-group:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.7), 0 0 20px rgba(255, 200, 0, 0.15);
+    }
+
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 24px;
+    margin-top: 30px;
+}
+
+.dashboard-header {
+    margin-bottom: 30px;
+}
+
+    .dashboard-header h1 {
+        font-size: 38px;
+        margin-bottom: 10px;
+    }
+
+    .dashboard-header p {
+        color: #d8d8d8;
+        margin: 0;
+    }
+
+/* =========================
+   PREMIUM PAGE GLOW / SHINE
+   ========================= */
+
+.premium-page .feedback-card,
+.premium-page .chat-box,
+.premium-page .chat-card,
+.premium-page .form-group {
+    animation: goldGlow 2.5s ease-in-out infinite;
+    position: relative;
+    overflow: hidden;
+}
+
+    .premium-page .feedback-card::before,
+    .premium-page .chat-box::before,
+    .premium-page .chat-card::before,
+    .premium-page .form-group::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 120%;
+        height: 100%;
+        background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+        transition: 0.6s;
+        pointer-events: none;
+    }
+
+    .premium-page .feedback-card:hover::before,
+    .premium-page .chat-box:hover::before,
+    .premium-page .chat-card:hover::before,
+    .premium-page .form-group:hover::before {
+        left: 100%;
+    }
+
+    .premium-page .feedback-card:hover,
+    .premium-page .chat-box:hover,
+    .premium-page .chat-card:hover,
+    .premium-page .form-group:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.7), 0 0 20px rgba(255, 200, 0, 0.15);
     }
