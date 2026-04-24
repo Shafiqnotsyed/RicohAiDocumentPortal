@@ -1,0 +1,110 @@
+@page
+@model RicohAiDocumentPortal.Pages.Document.FeedbackModel
+@{
+    ViewData["Title"] = "Analyze Document";
+}
+
+<section class="chat-container premium-page">
+    <h1 class="page-title">Analyze Document Text</h1>
+    <p class="chat-subtitle">
+        Paste the extracted document text below to generate AI feedback, document scoring, red flags, and improvement suggestions.
+    </p>
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="chat-alert">
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
+    <div class="chat-card">
+        <form method="post" class="chat-form" id="feedbackForm">
+            <div class="form-group">
+                <label asp-for="Input.FileName" class="chat-label">File Name</label>
+                <input asp-for="Input.FileName" class="chat-input" placeholder="e.g. invoice.pdf" />
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Input.DocumentText" class="chat-label">Document Text</label>
+                <textarea asp-for="Input.DocumentText"
+                          class="chat-textarea"
+                          rows="14"
+                          placeholder="Paste extracted document text here..."></textarea>
+            </div>
+
+            <button type="submit" class="btn-primary" id="feedbackSubmitBtn">Analyze with AI</button>
+        </form>
+    </div>
+</section>
+
+<div id="feedbackLoadingOverlay" class="loading-overlay hidden">
+    <div class="loading-card" data-models='@System.Text.Json.JsonSerializer.Serialize(Model.LoadingModels)'>
+        <div class="loading-title">Analyzing document...</div>
+        <div class="loading-subtitle">AI is reviewing the content and generating feedback.</div>
+
+        <div class="skeleton-block skeleton-title"></div>
+        <div class="skeleton-block skeleton-line"></div>
+        <div class="skeleton-block skeleton-line short"></div>
+
+        <div class="skeleton-grid">
+            <div class="skeleton-panel"></div>
+            <div class="skeleton-panel"></div>
+            <div class="skeleton-panel"></div>
+        </div>
+
+        <div class="loading-attempt" id="feedbackLoadingAttempt">Attempt 1 of 3 · @Model.LoadingModels.FirstOrDefault()</div>
+        <div class="loading-model-note" id="feedbackLoadingModelNote">Starting with the primary model.</div>
+
+        <div class="loading-dots">
+            <span></span><span></span><span></span>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const feedbackForm = document.getElementById("feedbackForm");
+        const feedbackOverlay = document.getElementById("feedbackLoadingOverlay");
+        const feedbackButton = document.getElementById("feedbackSubmitBtn");
+        const attemptText = document.getElementById("feedbackLoadingAttempt");
+        const modelNote = document.getElementById("feedbackLoadingModelNote");
+        const models = feedbackOverlay ? JSON.parse(feedbackOverlay.querySelector(".loading-card")?.dataset.models || "[]") : [];
+        let feedbackAttemptTimer;
+
+        function startAttemptSequence() {
+            if (!attemptText || !modelNote || !models.length) return;
+            const attemptNotes = [
+                "Starting with the primary model.",
+                "Re-attempting with the first fallback model.",
+                "Re-attempting with the second fallback model."
+            ];
+            let index = 0;
+
+            const renderAttempt = () => {
+                const modelName = models[index] || "AI model";
+                attemptText.textContent = `Attempt ${index + 1} of 3 · ${modelName}`;
+                modelNote.textContent = attemptNotes[index] || "Trying another available model.";
+            };
+
+            renderAttempt();
+            feedbackAttemptTimer = window.setInterval(() => {
+                if (index >= Math.min(models.length, 3) - 1) return;
+                index += 1;
+                renderAttempt();
+            }, 2800);
+        }
+
+        if (feedbackForm) {
+            feedbackForm.addEventListener("submit", function () {
+                if (feedbackOverlay) {
+                    feedbackOverlay.classList.remove("hidden");
+                    startAttemptSequence();
+                }
+                if (feedbackButton) {
+                    feedbackButton.disabled = true;
+                    feedbackButton.innerText = "Analyzing...";
+                }
+            });
+        }
+    });
+</script>

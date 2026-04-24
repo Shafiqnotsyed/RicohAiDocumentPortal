@@ -1,0 +1,358 @@
+html {
+    font-size: 16px;
+}
+
+@media (min-width: 1400px) {
+    html {
+        font-size: 18px;
+    }
+}
+<!-- dd-- >
+.btn-container {
+    position: relative;
+    width: 300px; /* adjust as needed */
+    height: 150px; /* adjust as needed */
+}
+
+#login-btn {
+    position: absolute;
+    cursor: pointer;
+    transition: 0.9s ease;
+    transition: left 0.9s, top 0.9s; /* smooth movement */
+}
+
+#register-btn {
+    position: absolute;
+    cursor: pointer;
+    transition: 0.9s ease;
+    transition: left 0.9s, top 0.9s; /* smooth movement */
+}
+
+.btn {
+    position: relative;
+    transition: transform 0.3s ease;
+}
+
+
+.login-shift-left {
+    transform: translateX(-250px);
+}
+
+.login-shift-right {
+    transform: translateX(250px);
+}
+
+.login-shift-top {
+    transform: translateY(-15px);
+}
+
+.login-shift-bottom {
+    transform: translateY(10px);
+}
+
+.login-no-shift {
+    transform: translate(0%, 0%);
+}
+
+.register-shift-left {
+    transform: translateX(-180px);
+}
+
+.register-shift-right {
+    transform: translateX(290px);
+}
+
+.register-shift-top {
+    transform: translateY(-80px);
+}
+
+.register-shift-bottom {
+    transform: translateY(80px);
+}
+
+/* COMMON RESET */
+.no-shift {
+    transform: translate(0%, 0%);
+}
+/*social media buttons css*/
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+    *:focus,
+    *:active {
+        outline: none !important;
+        -webkit-tap-highlight-color: transparent;
+    }
+{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    min-width: 100vw;
+    margin: 0;
+    font-family: "Poppins", sans-serif;
+    background: linear-gradient(315deg, #ffffff, #d7e1ec);
+}
+
+.wrapper {
+    display: inline-flex;
+    list-style: none;
+    padding: 0;
+}
+
+    .wrapper .icon {
+        position: relative;
+        background: #ffffff;
+        border-radius: 50%;
+        padding: 15px;
+        margin: 10px;
+        width: 50px;
+        height: 50px;
+        font-size: 18px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        box-shadow: 0 10px 10px rgba(0, 0, 0, 0.1);
+        cursor: pointer;
+        transition: all 0.2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+
+    .wrapper .tooltip {
+        position: absolute;
+        top: 0;
+        font-size: 14px;
+        background: #ffffff;
+        color: #ffffff;
+        padding: 5px 8px;
+        border-radius: 5px;
+        box-shadow: 0 10px 10px rgba(0, 0, 0, 0.1);
+        opacity: 0;
+        pointer-events: none;
+        transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+
+        .wrapper .tooltip::before {
+            position: absolute;
+            content: "";
+            height: 8px;
+            width: 8px;
+            background: #ffffff;
+            bottom: -3px;
+            left: 50%;
+            transform: translate(-50%) rotate(45deg);
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+    .wrapper .icon:hover .tooltip {
+        top: -45px;
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+    }
+
+    .wrapper .icon:hover span,
+    .wrapper .icon:hover .tooltip {
+        text-shadow: 0px -1px 0px rgba(0, 0, 0, 0.1);
+    }
+
+    .wrapper .google:hover,
+    .wrapper .google:hover .tooltip,
+    .wrapper .google:hover .tooltip::before {
+        background: #ffcc33;
+        color: #ffffff;
+    }
+
+    .wrapper .github:hover,
+    .wrapper .github:hover .tooltip,
+    .wrapper .github:hover .tooltip::before {
+        background: #91a3b0;
+        color: #ffffff;
+    }
+
+    
+
+    .wrapper .icon i {
+        color: #000; /* or any color you prefer */
+        font-size: 22px;
+    }
+
+/*forgot password cssssssssssssssssssssssssssssssssssssssssssssss*/
+
+/* Forgot Password Popup */
+.forgot-popup h2, .forgot-popup p {
+    color: #ffffff;
+}
+/*making pop up email input white --above*/
+.ok-btn {
+    position: relative;
+    width: 130PX;
+    height: 34px;
+    background: transparent;
+    color: #ffffff;
+    border: 2px solid #DA1745;
+    padding: 10px;
+    border-radius: 40px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-top: 20px;
+    overflow: hidden;
+    z-index: 1;
+    padding: 8px 10px;
+    line-height: normal;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+    .ok-btn::before {
+        content: "";
+        position: absolute;
+        height: 300%;
+        width: 100%;
+        background: linear-gradient(#25252b, #DA1745, #25252b, #DA1745);
+        top: -100%;
+        left: 0;
+        z-index: -1;
+        transition: .5s;
+    }
+
+    .ok-btn:hover::before {
+        top: 0;
+    }
+
+/*OK BUTTON above*/
+.forgot-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 999;
+    display: none;
+    transition: opacity 0.4s ease;
+}
+
+    .forgot-overlay.active {
+        display: flex; /* ← show when active */
+    }
+
+.forgot-popup {
+    background: #25252b;
+    padding: 40px;
+    width: 360px;
+    position: relative;
+    transform: translateY(30px);
+    transition: transform 0.4s ease;
+    font-family: 'Poppins', sans-serif;
+}
+
+.forgot-overlay.active .forgot-popup {
+    transform: translateY(0);
+}
+
+.forgot-popup h2 {
+    font-size: 24px;
+    color: #fff;
+    margin-bottom: 8px;
+}
+
+.forgot-popup p {
+    font-size: 13px;
+    color: #aaa;
+    margin-bottom: 20px;
+}
+
+.forgot-close {
+    position: absolute;
+    top: 14px;
+    right: 18px;
+    background: transparent;
+    border: none;
+    color: #DA1745;
+    font-size: 24px;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.forgot-input-box {
+    position: relative;
+    width: 100%;
+    height: 50px;
+    margin-bottom: 30px;
+}
+/*changed input colour here*/
+    .forgot-input-box input {
+        width: 100%;
+        height: 100%;
+        background: transparent;
+        border: none;
+        outline: none;
+        font-size: 16px;
+        color: #aaaaaa;
+        font-weight: 600;
+        border-bottom: 2px solid #DA1745;
+        padding-right: 23px;
+        font-family: 'Poppins', sans-serif;
+    }
+
+    .forgot-input-box box-icon {
+        position: absolute;
+        top: 50%;
+        right: 0;
+        transform: translateY(-50%);
+    }
+
+.forgot-btn {
+    position: relative;
+    width: 100%;
+    left: unset;
+}
+/* OTP BOXES */
+.otp-boxes {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-bottom: 24px;
+}
+
+.otp-input {
+    width: 55px;
+    height: 55px;
+    text-align: center;
+    font-size: 22px;
+    font-weight: 700;
+    color: #f0fff0;
+    background: transparent;
+    border: 2px solid #ffffff;
+    outline: none;
+    font-family: 'Poppins', sans-serif;
+}
+
+    .otp-input:focus {
+        border-color: #fff;
+    }
+/*--------------------------------AUTOFILL TAKEAWAY-----------------------*/
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0px 1000px #25252b inset !important;
+    -webkit-text-fill-color: #aaaaaa !important;
+    caret-color: #aaaaaa !important;
+    transition: background-color 5000s ease-in-out 0s;
+}
+/*-----------------------CAPS LOCK CODE---------------------------------*/
+#text1, #text2, #text3 {
+    display: none;
+    color: #ffffff;
+    font-size: 16px;
+    margin-top: 4px;
+}
+#text2,#text3 {
+    margin-left: -10%;
+}

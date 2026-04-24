@@ -1,0 +1,161 @@
+@page
+@model RicohAiDocumentPortal.Pages.Account.LoginModel
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ricoh AI Document Portal - Login</title>
+    <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css'>
+    <link rel="stylesheet" href="~/css/auth-style.css" asp-append-version="true">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Open Sans", Arial, Helvetica, sans-serif; color: #fff; }
+        body { display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #25252b; padding: 20px; }
+        .container { position: relative; width: 804px; max-width: 1000px; min-height: 600px; height: 600px; border: 2px solid #DA1745; box-shadow: 0 0 25px #DA1745; overflow: hidden; }
+        .container .form-box { position: absolute; top: 0; width: 50%; height: 100%; display: flex; justify-content: center; flex-direction: column; }
+        .form-box.Login { left: 0; padding: 0 40px; }
+        .form-box.Login .animation { transform: translateX(0%); transition: .7s; opacity: 1; transition-delay: calc(.1s * var(--S)); }
+        .container.active .form-box.Login .animation { transform: translateX(-120%); opacity: 0; transition-delay: calc(.1s * var(--D)); }
+        .form-box.Register { right: 0; padding: 0 60px 0 90px; }
+        .form-box.Register h2 { position: relative; z-index: 10; }
+        .form-box.Register .animation { transform: translateX(120%); transition: .7s ease; opacity: 0; filter: blur(10px); transition-delay: calc(.1s * var(--S)); }
+        .container.active .form-box.Register .animation { transform: translateX(0%); opacity: 1; filter: blur(0px); transition-delay: calc(.1s * var(--li)); }
+        .form-box h2 { font-size: 32px; text-align: center; }
+        .form-box .input-box { position: relative; width: 100%; height: 50px; margin-top: 25px; }
+        .input-box input { width: 100%; height: 100%; background: transparent; border: none; outline: none; font-size: 16px; color: #aaaaaa; font-weight: 600; border-bottom: 2px solid #DA1745; padding-right: 23px; transition: .5s; }
+        .form-box.Register .input-box input { width: 112%; margin-left: -10%; }
+        .input-box input:focus, .input-box input:valid { border-bottom: 2px solid #800000; }
+        .input-box label { position: absolute; top: 50%; left: 0; transform: translateY(-50%); font-size: 16px; color: #DA1745; transition: .5s; }
+        .input-box input:focus ~ label, .input-box input:valid ~ label { top: -5px; color: #800000; }
+        .input-box box-icon { position: absolute; top: 50%; right: 0; font-size: 18px; transform: translateY(-50%); color: #DA1745; cursor: pointer; }
+        .input-box input:focus ~ box-icon, .input-box input:valid ~ box-icon { color: #800000; }
+        .btn { position: absolute; width: 40%; height: 35px; background: transparent; border-radius: 40px; cursor: pointer; font-size: 16px; font-weight: 600; border: 2px solid #800000; overflow: hidden; z-index: 1; color: #fff; }
+        .btn::before { content: ""; position: absolute; height: 300%; width: 100%; background: linear-gradient(#25252b, #DA1745, #25252b, #DA1745); top: -100%; left: 0; z-index: -1; transition: .5s; }
+        .btn:hover:before { top: 0; }
+        .regi-link { font-size: 14px; text-align: center; margin: 20px 0 10px; }
+        .regi-link a { text-decoration: none; color: #DA1745; font-weight: 600; }
+        .regi-link a:hover { text-decoration: underline; }
+        .info-content { position: absolute; top: 0; height: 100%; width: 50%; display: flex; justify-content: center; flex-direction: column; }
+        .info-content.Login { right: 0; text-align: right; padding: 0 40px 60px 150px; }
+        .info-content.Login .animation { transform: translateX(0); transition: .7s ease; transition-delay: calc(.1s * var(--S)); opacity: 1; filter: blur(0px); }
+        .container.active .info-content.Login .animation { transform: translateX(120%); opacity: 0; filter: blur(10px); transition-delay: calc(.1s * var(--D)); }
+        .info-content.Register { left: 0; text-align: left; padding: 0 80px 60px 38px; pointer-events: none; }
+        .info-content.Register .animation { transform: translateX(-120%); transition: .7s ease; opacity: 0; filter: blur(10PX); transition-delay: calc(.1s * var(--S)); }
+        .container.active .info-content.Register .animation { transform: translateX(0%); opacity: 1; filter: blur(0); transition-delay: calc(.1s * var(--li)); }
+        .info-content h2 { text-transform: uppercase; font-size: 36px; line-height: 1.3; }
+        .info-content p { font-size: 16px; }
+        .container .curved-shape { position: absolute; right: 0; top: -5px; height: 600px; width: 850px; background: linear-gradient(45deg, #25252b, #DA1745); transform: rotate(10deg) skewY(35deg); transform-origin: bottom right; transition: 1.5s ease; transition-delay: 1.6s; }
+        .container.active .curved-shape { transform: rotate(0deg) skewY(0deg); transition-delay: .5s; }
+        .container .curved-shape2 { position: absolute; left: 120px; top: 100%; height: 700px; width: 1000px; background: #25252b; border-top: 3px solid #DA1745; transform: rotate(10deg) skewY(35deg); transform-origin: bottom left; transition: 1.5s ease; transition-delay: .5s; }
+        .container.active .curved-shape2 { transform: rotate(-10deg) skewY(-36deg); transition-delay: 1.2s; }
+        .system-message { color: #ff9db6; font-size: 13px; margin-top: 6px; text-align: center; }
+    </style>
+</head>
+<body>
+    <form method="post">@Html.AntiForgeryToken()</form>
+    <div class="container">
+        <div class="curved-shape"></div>
+        <div class="curved-shape2"></div>
+
+        <div class="forgot-overlay" id="forgotOverlay">
+            <div class="forgot-popup">
+                <button class="forgot-close" id="forgotClose">&times;</button>
+                <div id="step1">
+                    <h2>Forgot Password?</h2>
+                    <p>Enter your email address and we will send you a reset link.</p>
+                    <div class="forgot-input-box">
+                        <input type="email" placeholder="Email Address" id="Emailspace" required style="color:#ffffff;">
+                        <label for="Emailspace"></label>
+                        <box-icon name='envelope' type='solid' color="gray"></box-icon>
+                    </div>
+                    <button class="btn SendOTP-btn" id="sendOtpBtn" type="button">Send</button>
+                </div>
+                <div id="step2" style="display:none;">
+                    <h2>Reset Link Sent!</h2>
+                    <p>We sent a reset password link to your email. Check your inbox or spam folder, then log in with your new password.</p>
+                    <button class="ok-btn" id="okBtn" type="button"><b>Ok</b></button>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-box Login">
+            <h2 class="animation" style="--D:0; --S:21;"><b>Login</b></h2>
+            <form action="#">
+                <div class="input-box animation" style="--D:1; --S:22">
+                    <input type="email" placeholder="Email" id="email1" autocomplete="off" required>
+                    <label></label>
+                    <box-icon name='envelope' type='solid' color="gray"></box-icon>
+                </div>
+                <div class="input-box animation" style="--D:2; --S:23">
+                    <input type="password" placeholder="Password" id="pass1" autocomplete="off" required>
+                    <label></label>
+                    <box-icon name='lock-alt' type='solid' id="togglePassword" color="gray"></box-icon>
+                </div>
+                <br><br>
+                <a href="#" id="forgotLink" class="animation" style="--D:0.1; --S:26">Forgot Password?</a>
+                <div class="input-box animation" style="--D:3; --S:24">
+                    <button class="btn" type="button" id="login-btn">Login</button>
+                </div>
+                <div class="input-box animation" style="--D:4; --S:24">
+                    <ul class="wrapper">
+                        <li id="google-btn" class="icon google">
+                            <span class="tooltip">Login with Google</span>
+                            <span><i class="fab fa-google"></i></span>
+                        </li>
+                        <li id="github-btn" class="icon github">
+                            <span class="tooltip">Login with GitHub</span>
+                            <span><i class="fab fa-github"></i></span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="regi-link animation" style="--D:4; --S:25">
+                    <p>Don't have an account? <br><a href="#" class="SignUpLink">Sign Up</a></p>
+                </div>
+            </form>
+        </div>
+
+        <div class="info-content Login">
+            <h2 class="animation" style="--D:0; --S:20"><img src="~/images/ricoh-logo.png" alt="Ricoh Logo" width="180"></h2>
+            <p class="animation" style="--D:1; --S:21">Welcome back!</p>
+        </div>
+
+        <div class="form-box Register">
+            <h2 class="animation" style="--li:17; --S:0;"><b>Register</b></h2>
+            <br><br><br>
+            <form action="#" onsubmit="return false;">
+                <div class="input-box animation" style="--li:19; --S:2">
+                    <input type="email" placeholder="Email" id="email2" required>
+                    <label></label>
+                    <box-icon name='envelope' type='solid' color="gray"></box-icon>
+                </div>
+                <div class="input-box animation" style="--li:19; --S:3">
+                    <input type="password" placeholder="Create New Password" id="pass2" required>
+                    <box-icon name='lock-alt' type='solid' id="togglePassword2" color="gray"></box-icon>
+                </div>
+                <div class="input-box animation" style="--li:19; --S:3">
+                    <input type="password" placeholder="Confirm Password" id="pass3" required>
+                    <box-icon name='lock-alt' type='solid' id="togglePassword3" color="gray"></box-icon>
+                </div>
+                <br><br>
+                <div class="input-box animation" style="--li:20; --S:4">
+                    <button class="btn" type="submit" id="register-btn">Register</button>
+                </div>
+                <div class="regi-link animation" style="--li:21; --S:5">
+                    <p>Already have an account? <br><a href="#" class="SignInLink">Sign In</a></p>
+                </div>
+            </form>
+        </div>
+
+        <div class="info-content Register">
+            <h2 class="animation" style="--li:17; --S:0"><img src="~/images/ricoh-logo.png" alt="Ricoh Logo" width="180"></h2>
+            <p class="animation" style="--li:18; --S:1">Welcome!</p>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/boxicons@2.1.4/dist/boxicons.js"></script>
+    <script type="module" src="~/js/auth.js" asp-append-version="true"></script>
+</body>
+</html>

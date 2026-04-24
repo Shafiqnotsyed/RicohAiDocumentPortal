@@ -1,0 +1,34 @@
+@page
+@model RicohAiDocumentPortal.Pages.Account.LogoutModel
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Logging out...</title>
+</head>
+<body style="background:#25252b;color:#fff;display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:Arial,sans-serif;">
+    <p>Logging out...</p>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+        import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
+        const firebaseConfig = {
+          apiKey: "AIzaSyCFay_u390Jvxxb5fnLgolIC-o98Tr5U0s",
+          authDomain: "webapplication2-c4aa6.firebaseapp.com",
+          projectId: "webapplication2-c4aa6",
+          storageBucket: "webapplication2-c4aa6.firebasestorage.app",
+          messagingSenderId: "621050499658",
+          appId: "1:621050499658:web:f7e5f2d4c439565b030cb3",
+          measurementId: "G-LB37R11R69"
+        };
+        try {
+          const app = initializeApp(firebaseConfig);
+          await signOut(getAuth(app));
+        } catch (_) {}
+        window.location.replace('/Account/Login');
+    </script>
+</body>
+</html>

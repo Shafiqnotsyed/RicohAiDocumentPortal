@@ -1,0 +1,147 @@
+@page
+@model RicohAiDocumentPortal.Pages.Profile.IndexModel
+@{
+    ViewData["Title"] = "My Profile";
+}
+
+<section class="profile-container">
+    <h1 class="page-title">My Profile</h1>
+    <p class="chat-subtitle">
+        View your account details, AI usage, activity status, and recent history.
+    </p>
+
+    <div class="profile-grid">
+        <div class="profile-card profile-main-card">
+            <h2>Account Details</h2>
+
+            <div class="profile-field">
+                <label>Email</label>
+                <input type="email" value="@Model.UserEmail" class="profile-input" readonly />
+            </div>
+
+            <div class="profile-field">
+                <label>Username</label>
+                <input type="text" value="John" class="profile-input" />
+            </div>
+
+            <div class="profile-field">
+                <label>Tokens Remaining</label>
+                <input type="text" value="1,250 Tokens" class="profile-input" readonly />
+            </div>
+        </div>
+
+        <div class="profile-card profile-status-card">
+            <h2>AI Activity</h2>
+
+            <div class="activity-status">
+                <span class="status-dot"></span>
+                <span class="status-text">AI Active</span>
+            </div>
+
+            <p class="status-description">
+                Your AI assistant is currently available for chat and document feedback.
+            </p>
+        </div>
+    
+        <div class="profile-card profile-theme-card">
+            <h2>Appearance</h2>
+            <p class="theme-helper-text">Switch between the original dark theme and a lighter workspace theme for the portal.</p>
+            <div class="theme-toggle-row">
+                <div>
+                    <div class="theme-toggle-label">Light mode</div>
+                    <div class="theme-toggle-subtext">Dark mode keeps the original Ricoh colour scheme.</div>
+                    <div class="theme-current-status">Current theme: <strong id="themeModeLabel">@Model.CurrentTheme</strong></div>
+                </div>
+                <label class="theme-switch" for="themeToggle">
+                    <input type="checkbox" id="themeToggle" @(Model.CurrentTheme == "light" ? "checked" : null) />
+                    <span class="theme-slider"></span>
+                </label>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="profile-history-grid">
+        <div class="profile-card">
+            <h2>Uploaded PDFs</h2>
+            <ul class="profile-history-list">
+                <li>invoice_march_2026.pdf</li>
+                <li>supplier_quote_final.pdf</li>
+                <li>purchase_order_v2.pdf</li>
+            </ul>
+        </div>
+
+        <div class="profile-card">
+            <h2>AI Feedback History</h2>
+            <ul class="profile-history-list">
+                <li>Invoice risk analysis completed</li>
+                <li>Purchase order review generated</li>
+                <li>Document compliance feedback generated</li>
+            </ul>
+        </div>
+
+        <div class="profile-card">
+            <h2>Chat History</h2>
+            <ul class="profile-history-list">
+                <li>Asked about invoice breakdown</li>
+                <li>Asked about missing payment details</li>
+                <li>Asked for correction suggestions</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const toggle = document.getElementById("themeToggle");
+        const statusLabel = document.getElementById("themeModeLabel");
+        if (!toggle) return;
+
+        const currentTheme = "@Model.CurrentTheme".toLowerCase();
+        toggle.checked = currentTheme === "light";
+
+        async function saveTheme(nextTheme) {
+            const response = await fetch('/Profile/Index?handler=SetTheme', {
+                method: 'POST',
+                credentials: 'same-origin',
+                cache: 'no-store',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ theme: nextTheme })
+            });
+
+            const result = await response.json().catch(function () { return null; });
+
+            if (!response.ok || !result || !result.success) {
+                throw new Error((result && result.message) || 'Failed to update theme.');
+            }
+
+            return result;
+        }
+
+        toggle.addEventListener("change", async function () {
+            const nextTheme = toggle.checked ? "light" : "dark";
+            toggle.disabled = true;
+
+            try {
+                const result = await saveTheme(nextTheme);
+
+                document.documentElement.setAttribute("data-theme", result.theme);
+                document.body.setAttribute("data-theme", result.theme);
+
+                if (statusLabel) {
+                    statusLabel.textContent = result.theme;
+                }
+
+                window.location.href = window.location.pathname + '?theme=' + encodeURIComponent(result.theme);
+            } catch (error) {
+                toggle.checked = !toggle.checked;
+                alert(error.message || "Failed to save theme.");
+            } finally {
+                toggle.disabled = false;
+            }
+        });
+    });
+</script>

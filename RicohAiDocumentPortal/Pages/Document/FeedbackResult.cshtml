@@ -1,0 +1,194 @@
+@page
+@model RicohAiDocumentPortal.Pages.Document.FeedbackResultModel
+@{
+    ViewData["Title"] = "AI Document Analysis";
+    var result = Model.Result;
+}
+
+@if (result == null)
+{
+    <section class="chat-container">
+        <p>No analysis result found. <a asp-page="/Document/Feedback">Go back</a>.</p>
+    </section>
+}
+else
+{
+    <section class="feedback-container premium-page">
+
+        <div class="result-header-row">
+            <h1 class="page-title">AI Document Analysis</h1>
+            @if (!string.IsNullOrWhiteSpace(result.GeneratedByModel))
+            {
+                <div class="generation-pill">
+                    <span>Attempt @result.AttemptNumber/3</span>
+                    <strong>@result.GeneratedByModel</strong>
+                </div>
+            }
+        </div>
+        @if (!string.IsNullOrWhiteSpace(result.GenerationStatus))
+        {
+            <p class="generation-note">@result.GenerationStatus</p>
+        }
+
+        <div class="feedback-card full-width summary-card">
+            <h2>Summary</h2>
+            <p>@result.Summary</p>
+        </div>
+
+        <div class="feedback-grid top-info-grid">
+            <div class="feedback-card info-card type-card">
+                <h3>Document Type</h3>
+                <p>@result.DocumentType</p>
+            </div>
+
+            <div class="feedback-card info-card grade-card">
+                <h3>Grade</h3>
+                <p class="grade @result.Grade.Replace(" ", "")">@result.Grade</p>
+            </div>
+
+            <div class="feedback-card info-card confidence-card">
+                <h3>Confidence</h3>
+                <p>@result.ConfidenceScore</p>
+            </div>
+        </div>
+
+        <div class="feedback-card full-width score-section" id="scoreSection">
+            <h2>Scores</h2>
+
+            @if (result.Scores != null)
+            {
+                <div class="score-bar">
+                    <div class="score-head">
+                        <span class="score-label">Overall</span>
+                        <span class="score-value"><span class="score-number" data-target="@result.Scores.OverallScore">0</span><span class="score-denominator">/ 10</span></span>
+                    </div>
+                    <div class="bar blue">
+                        <div class="fill" data-width="@(result.Scores.OverallScore * 10)%"></div>
+                    </div>
+                </div>
+
+                <div class="score-bar">
+                    <div class="score-head">
+                        <span class="score-label">Risk</span>
+                        <span class="score-value"><span class="score-number" data-target="@result.Scores.RiskScore">0</span><span class="score-denominator">/ 10</span></span>
+                    </div>
+                    <div class="bar red">
+                        <div class="fill" data-width="@(result.Scores.RiskScore * 10)%"></div>
+                    </div>
+                </div>
+
+                <div class="score-bar">
+                    <div class="score-head">
+                        <span class="score-label">Completeness</span>
+                        <span class="score-value"><span class="score-number" data-target="@result.Scores.CompletenessScore">0</span><span class="score-denominator">/ 10</span></span>
+                    </div>
+                    <div class="bar green">
+                        <div class="fill" data-width="@(result.Scores.CompletenessScore * 10)%"></div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <p>No score data available.</p>
+            }
+        </div>
+
+        <div class="feedback-stack-layout">
+            <div class="feedback-card neutral full-width-card">
+                <h2>Extracted Fields</h2>
+                @if (result.ExtractedFields != null && result.ExtractedFields.Any())
+                {
+                    <ul>
+                        @foreach (var field in result.ExtractedFields)
+                        {
+                            <li><strong>@field.Key:</strong> @field.Value</li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <p>No extracted fields found.</p>
+                }
+            </div>
+
+            <div class="feedback-card red full-width-card">
+                <h2>Red Flags</h2>
+                @if (result.RedFlags != null && result.RedFlags.Any())
+                {
+                    <ul>
+                        @foreach (var item in result.RedFlags)
+                        {
+                            <li>@item</li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <p>No red flags found.</p>
+                }
+            </div>
+
+            <div class="feedback-card green full-width-card">
+                <h2>Corrections</h2>
+                @if (result.Corrections != null && result.Corrections.Any())
+                {
+                    <ul>
+                        @foreach (var item in result.Corrections)
+                        {
+                            <li>@item</li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <p>No corrections found.</p>
+                }
+            </div>
+        </div>
+    </section>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const scoreSection = document.getElementById('scoreSection');
+            if (!scoreSection) return;
+
+            const numbers = scoreSection.querySelectorAll('.score-number');
+            const fills = scoreSection.querySelectorAll('.fill');
+            let hasAnimated = false;
+
+            fills.forEach(fill => {
+                fill.style.width = '0%';
+            });
+
+            function animateScores() {
+                if (hasAnimated) return;
+                hasAnimated = true;
+
+                fills.forEach(fill => {
+                    const targetWidth = fill.getAttribute('data-width') || '0%';
+                    requestAnimationFrame(() => {
+                        fill.style.width = targetWidth;
+                    });
+                });
+
+                numbers.forEach(number => {
+                    const target = parseInt(number.getAttribute('data-target') || '0', 10);
+                    let current = 0;
+                    const duration = 700;
+                    const stepTime = Math.max(35, Math.floor(duration / Math.max(target, 1)));
+
+                    const timer = setInterval(() => {
+                        current += 1;
+                        if (current >= target) {
+                            current = target;
+                            clearInterval(timer);
+                        }
+                        number.textContent = current.toString();
+                    }, stepTime);
+                });
+            }
+
+            scoreSection.addEventListener('mouseenter', animateScores, { once: true });
+        });
+    </script>
+}

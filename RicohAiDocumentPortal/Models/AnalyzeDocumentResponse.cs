@@ -1,4 +1,4 @@
-﻿namespace RicohAiDocumentPortal.Models
+namespace RicohAiDocumentPortal.Models
 {
     public class AnalyzeDocumentResponse
     {
@@ -10,5 +10,9 @@
         public List<string> RedFlags { get; set; } = new();
         public List<string> Corrections { get; set; } = new();
         public double ConfidenceScore { get; set; }
+        public string GeneratedByModel { get; set; } = string.Empty;
+        public int AttemptNumber { get; set; }
+        public bool UsedFallback { get; set; }
+        public string GenerationStatus { get; set; } = string.Empty;
     }
 }

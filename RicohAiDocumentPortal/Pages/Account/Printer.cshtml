@@ -1,0 +1,222 @@
+@page
+@model RicohAiDocumentPortal.Pages.Account.PrinterModel
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Ricoh Login</title>
+  <style>
+    @@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; font-family:'Poppins',sans-serif; }
+
+    body {
+      background: #25252b;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    #printer-scene {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    #printer-scene.fade-out {
+      opacity: 0;
+      transform: scale(0.94) translateY(-24px);
+      pointer-events: none;
+    }
+
+    #printer-hint {
+      color: rgba(218,23,69,0.65);
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      margin-bottom: 18px;
+      transition: opacity 0.4s;
+    }
+
+    @@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.15} }
+    .printer-led { animation: blink 2s ease-in-out infinite; }
+
+    @@keyframes bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-7px)} }
+    #printer-svg {
+      filter: drop-shadow(0 0 18px rgba(218,23,69,0.35));
+      transition: filter 0.3s;
+    }
+    #printer-scene:not(.printing) #printer-svg { animation: bob 3s ease-in-out infinite; }
+    #printer-scene:hover #printer-svg { filter: drop-shadow(0 0 30px rgba(218,23,69,0.7)); }
+
+    #paper-strip {
+      position: relative;
+      width: 808px;
+      height: 0;
+      overflow: hidden;
+      border-left:  2px solid #DA1745;
+      border-right: 2px solid #DA1745;
+      box-shadow: 0 0 30px rgba(218,23,69,0.18);
+      margin-top: -3px;
+      z-index: 5;
+      background: #25252b;
+    }
+
+    @@keyframes feedPaper {
+      from { height: 0; }
+      to   { height: var(--paper-target, 600px); }
+    }
+
+    #iframe-wrap {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      clip-path: inset(0 0 100% 0);
+    }
+
+    #login-iframe {
+      width: 808px;
+      height: 600px;
+      border: none;
+      display: block;
+      background: #25252b;
+    }
+
+    #scan-line {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 4px;
+      background: linear-gradient(to right,
+        transparent 0%,
+        rgba(218,23,69,0.4) 10%,
+        rgba(218,23,69,1)   40%,
+        #ff4d6d             50%,
+        rgba(218,23,69,1)   60%,
+        rgba(218,23,69,0.4) 90%,
+        transparent         100%);
+      box-shadow: 0 0 14px 4px rgba(218,23,69,0.7), 0 0 35px 8px rgba(218,23,69,0.25);
+      opacity: 0;
+      z-index: 20;
+      pointer-events: none;
+    }
+
+    @@keyframes scanDown {
+      0%   { top: 0%;   opacity: 1; }
+      96%  { opacity: 1; }
+      100% { top: 100%; opacity: 0; }
+    }
+
+    #paper-strip::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 3px;
+      background: #DA1745;
+      box-shadow: 0 0 12px rgba(218,23,69,0.9);
+      opacity: 0;
+      transition: opacity 0.4s;
+      pointer-events: none;
+    }
+    #paper-strip.done::after { opacity: 1; }
+  </style>
+</head>
+<body>
+  <div id="printer-scene" onclick="startPrint()">
+    <div id="printer-hint">Click printer to start.</div>
+
+    <svg id="printer-svg" width="868" height="165" viewBox="0 0 868 165" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="434" cy="158" rx="370" ry="9" fill="rgba(0,0,0,0.35)"/>
+      <rect x="250" y="24" width="368" height="10" rx="3" fill="#3a3a42" stroke="#DA1745" stroke-width="0.8"/>
+      <rect x="284" y="16" width="300" height="10" rx="2" fill="#2e2e35" stroke="#DA1745" stroke-width="0.6"/>
+      <rect x="30"  y="34" width="808" height="96" rx="10" fill="#2e2e35" stroke="#DA1745" stroke-width="1.5"/>
+      <rect x="38"  y="38" width="792" height="20" rx="6"  fill="#36363e" opacity="0.5"/>
+      <rect x="30"  y="100" width="808" height="12" rx="0" fill="#1a1a1f" stroke="#DA1745" stroke-width="0.8"/>
+      <rect x="34"  y="101.5" width="800" height="9" rx="1" fill="#DA1745" opacity="0.07"/>
+      <rect x="688" y="48" width="120" height="34" rx="6" fill="#26262c" stroke="rgba(218,23,69,0.2)" stroke-width="0.6"/>
+      <circle cx="708" cy="62" r="5" fill="#DA1745" class="printer-led"/>
+      <circle cx="728" cy="62" r="5" fill="#3a7bd5" opacity="0.7"/>
+      <circle cx="748" cy="62" r="5" fill="#2ea86b" opacity="0.5"/>
+      <circle cx="775" cy="62" r="8" fill="#36363e" stroke="#DA1745" stroke-width="1.2"/>
+      <text x="775" y="67" text-anchor="middle" font-size="9" fill="#DA1745" font-family="Poppins,sans-serif">⏻</text>
+      <text x="380" y="68" text-anchor="middle" font-size="18" font-weight="700" fill="#DA1745" font-family="Poppins,sans-serif" letter-spacing="1.5">RICOH</text>
+      <text x="380" y="86" text-anchor="middle" font-size="9" fill="rgba(218,23,69,0.4)" font-family="Poppins,sans-serif" letter-spacing="2">imagine. change.</text>
+      <rect x="30"  y="130" width="808" height="12" rx="0" fill="#2a2a30" stroke="#DA1745" stroke-width="0.8"/>
+      <rect x="40"  y="140" width="788" height="7"  rx="2" fill="#26262c"/>
+      <ellipse cx="90"  cy="150" rx="22" ry="7" fill="#222228" stroke="#DA1745" stroke-width="0.6"/>
+      <ellipse cx="778" cy="150" rx="22" ry="7" fill="#222228" stroke="#DA1745" stroke-width="0.6"/>
+    </svg>
+
+    <div id="paper-strip">
+      <div id="scan-line"></div>
+      <div id="iframe-wrap">
+        <iframe id="login-iframe" src="/Account/Login" scrolling="no" title="Login"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const PAPER_HEIGHT = 600;
+    const FEED_DURATION = 2000;
+
+    function startPrint() {
+      const scene = document.getElementById('printer-scene');
+      if (scene.classList.contains('printing')) return;
+      scene.classList.add('printing');
+
+      const hint = document.getElementById('printer-hint');
+      const strip = document.getElementById('paper-strip');
+      const iframeWrap = document.getElementById('iframe-wrap');
+      const scanLine = document.getElementById('scan-line');
+      const svg = document.getElementById('printer-svg');
+
+      hint.style.opacity = '0';
+
+      document.querySelectorAll('.printer-led').forEach(el => {
+        el.style.animation = 'blink 0.16s ease-in-out infinite';
+      });
+
+      let sc = 0;
+      svg.style.transition = 'none';
+      const shake = setInterval(() => {
+        svg.style.transform = sc % 2 === 0
+          ? 'translateX(1.5px) translateY(0.5px)'
+          : 'translateX(-1.5px) translateY(-0.5px)';
+        if (++sc > 16) { clearInterval(shake); svg.style.transform = ''; }
+      }, 50);
+
+      strip.style.setProperty('--paper-target', PAPER_HEIGHT + 'px');
+      strip.style.animation = `feedPaper ${FEED_DURATION}ms cubic-bezier(0.22,0.61,0.36,1) forwards`;
+      scanLine.style.animation = `scanDown ${FEED_DURATION}ms linear forwards`;
+      scanLine.style.opacity = '1';
+
+      const t0 = performance.now();
+      (function tick(now) {
+        const p = Math.min((now - t0) / FEED_DURATION, 1);
+        const ease = p < 0.5 ? 2*p*p : 1 - Math.pow(-2*p+2, 2) / 2;
+        iframeWrap.style.clipPath = `inset(0 0 ${Math.round((1 - ease) * 100)}% 0)`;
+        if (p < 1) requestAnimationFrame(tick);
+      })(t0);
+
+      setTimeout(() => {
+        strip.classList.add('done');
+        document.querySelectorAll('.printer-led').forEach(el => {
+          el.style.animation = 'blink 2s ease-in-out infinite';
+        });
+
+        setTimeout(() => {
+          scene.classList.add('fade-out');
+          setTimeout(() => {
+            window.location.href = '/Account/Login';
+          }, 660);
+        }, 1100);
+      }, FEED_DURATION + 200);
+    }
+  </script>
+</body>
+</html>

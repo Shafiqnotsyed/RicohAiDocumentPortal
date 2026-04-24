@@ -1,0 +1,766 @@
+@page
+@model RicohAiDocumentPortal.Pages.Dashboard.IndexModel
+@{
+    Layout = null;
+    ViewData["Title"] = "Dashboard";
+    var currentPath = Request.Path.Value?.ToLowerInvariant() ?? "";
+    bool isHome = currentPath == "/" || currentPath == "/index" || currentPath == "/home";
+    bool isLogin = currentPath == "/account/login";
+    bool isRegister = currentPath == "/account/register";
+    bool isAuthenticated = HttpContext.Session.GetString("IsAuthenticated") == "true";
+    bool isDashboard = currentPath == "/dashboard" || currentPath == "/dashboard/index";
+    bool isFeedback = currentPath == "/document/feedback" || currentPath == "/document/feedbackresult";
+    bool isChat = currentPath == "/document/chat";
+    bool isProfile = currentPath == "/profile" || currentPath == "/profile/index";
+    var currentTheme = HttpContext.Session.GetString("ThemeMode") ?? "dark";
+}
+<!DOCTYPE html>
+<html lang="en" data-theme="@currentTheme">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard - Ricoh AI Document Portal</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+</head>
+<body class="dashboard-page" data-theme="@currentTheme">
+    <header>
+        <nav class="navbar" id="mainNavbar">
+            <div class="nav-brand">
+                <a href="/Home" class="brand-link">Ricoh AI Document Portal</a>
+            </div>
+
+            <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation">
+                ☰
+            </button>
+
+            <div class="nav-right">
+                <ul class="nav-links" id="navMenu">
+                    @if (isAuthenticated)
+                    {
+                        @if (!isHome)
+                        {
+                            <li><a href="/Home">Home</a></li>
+                        }
+                        @if (!isDashboard)
+                        {
+                            <li><a asp-page="/Dashboard/Index">Dashboard</a></li>
+                        }
+                        @if (!isFeedback)
+                        {
+                            <li><a asp-page="/Document/Feedback">Feedback</a></li>
+                        }
+                        @if (!isChat)
+                        {
+                            <li><a asp-page="/Document/Chat">Chat</a></li>
+                        }
+                        <li class="mobile-only"><a asp-page="/Profile/Index">Settings</a></li>
+                        <li class="mobile-only"><a asp-page="/Profile/Payment">Plans &amp; Billing</a></li>
+                        <li class="mobile-only"><a asp-page="/Account/Logout">Logout</a></li>
+                    }
+                </ul>
+
+                @if (isAuthenticated)
+                {
+                    <div class="nav-profile desktop-only">
+                        <button type="button" class="profile-menu-toggle" id="profileMenuToggle" aria-haspopup="true" aria-expanded="false" aria-label="Open profile menu">
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 21a8 8 0 0 0-16 0"></path>
+                                <circle cx="12" cy="8" r="4"></circle>
+                            </svg>
+                        </button>
+                        <div class="profile-menu" id="profileMenu">
+                            <a asp-page="/Profile/Index">Settings</a>
+                            <a asp-page="/Profile/Payment">Plans &amp; Billing</a>
+                            <a asp-page="/Account/Logout">Logout</a>
+                        </div>
+                    </div>
+                }
+            </div>
+        </nav>
+    </header>
+
+    <div class="dashboard-navbar-spacer"></div>
+
+    <div class="app">
+
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>Recent Files</h2>
+                <div style="display:flex;align-items:center;gap:4px;flex-shrink:0;">
+                    <button class="icon-btn sidebar-clear-btn" title="Clear history">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="3 6 5 6 21 6" />
+                            <path d="M19 6l-1 14H6L5 6" />
+                            <path d="M10 11v6" />
+                            <path d="M14 11v6" />
+                        </svg>
+                    </button>
+                    <button class="collapse-btn" id="sidebarToggle" title="Collapse sidebar">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="15 18 9 12 15 6" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="history-list" id="historyList"></div>
+        </aside>
+
+        <main class="main">
+            <div class="main-header">
+                <div>
+                    <div class="main-title">Document Workspace</div>
+                    <div class="main-subtitle">Upload a document to begin AI-powered analysis</div>
+                </div>
+                <div style="display:flex;gap:10px;">
+                    <button class="btn btn-outline" id="clearBtn">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="1 4 1 10 7 10" />
+                            <path d="M3.51 15a9 9 0 1 0 .49-3.1" />
+                        </svg>
+                        Reset
+                    </button>
+                    <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                            <polyline points="17 8 12 3 7 8" />
+                            <line x1="12" y1="3" x2="12" y2="15" />
+                        </svg>
+                        Upload File
+                    </button>
+                </div>
+            </div>
+
+            <div class="main-content">
+                <div class="upload-zone" id="uploadZone">
+                    <input type="file" id="fileInput" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.gif,.bmp,.webp" />
+                    <div class="upload-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                            <polyline points="17 8 12 3 7 8" />
+                            <line x1="12" y1="3" x2="12" y2="15" />
+                        </svg>
+                    </div>
+                    <div class="upload-title">Drop your document here</div>
+                    <div class="upload-subtitle">or click to browse from your computer</div>
+                    <div class="upload-types">
+                        <span class="type-chip">PDF</span>
+                        <span class="type-chip">Word (.docx)</span>
+                        <span class="type-chip">Images (JPG, PNG)</span>
+                    </div>
+                </div>
+
+                <div class="section-title">Document Preview</div>
+                <div class="preview-card" id="previewCard">
+                    <div class="preview-toolbar">
+                        <div class="preview-filename" id="previewFilename">No document loaded</div>
+                        <div class="preview-pages" id="previewMeta">—</div>
+                        <button class="icon-btn" title="Zoom in">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="11" cy="11" r="8" />
+                                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                                <line x1="11" y1="8" x2="11" y2="14" />
+                                <line x1="8" y1="11" x2="14" y2="11" />
+                            </svg>
+                        </button>
+                        <button class="icon-btn" title="Download">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                <polyline points="7 10 12 15 17 10" />
+                                <line x1="12" y1="15" x2="12" y2="3" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="preview-body" id="previewBody">
+                        <div class="preview-placeholder" id="previewPlaceholder">
+                            <div class="preview-mock-doc">
+                                <div class="mock-line title"></div>
+                                <div class="mock-line"></div>
+                                <div class="mock-line medium"></div>
+                                <div class="mock-line short"></div>
+                                <div class="mock-line"></div>
+                                <div class="mock-line medium"></div>
+                                <div class="mock-line short"></div>
+                            </div>
+                            <p>Upload a file to see a preview</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <aside class="right-panel">
+            <div class="panel-header">
+                <h2>Analysis Results</h2>
+                <p>AI-generated insights will appear here</p>
+            </div>
+
+            <div class="panel-tabs">
+                <div class="tab active" data-tab="summary">Summary</div>
+                <div class="tab" data-tab="details">Details</div>
+            </div>
+
+            <div class="panel-body" id="panelBody">
+                <div class="empty-state" id="emptyState">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="12" y1="8" x2="12" y2="12" />
+                        <line x1="12" y1="16" x2="12.01" y2="16" />
+                    </svg>
+                    <p>No analysis yet.<br />Upload a document and click<br /><strong style="color:var(--cream)">Analyze Document</strong> to begin.</p>
+                </div>
+
+                <div id="statsSection" style="display:none;">
+                    <div id="tabSummary">
+                        <div class="section-title">AI Insights</div>
+
+                        <div class="result-block" style="animation-delay:0.1s">
+                            <div class="result-block-header">
+                                <div class="result-block-icon">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2">
+                                        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+                                        <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+                                    </svg>
+                                </div>
+                                <div class="result-block-title">Document Summary</div>
+                            </div>
+                            <p id="summaryText">Upload and analyze a document to generate a summary.</p>
+                        </div>
+
+                        <form method="post" asp-page-handler="SendToFeedback" id="sendToFeedbackForm">
+                            @Html.AntiForgeryToken()
+                            <button type="button" onclick="goToFeedback()" class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:12px;gap:8px;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                    <polyline points="14 2 14 8 20 8" />
+                                </svg>
+                                Feedback
+                            </button>
+                        </form>
+
+                        <form method="post" asp-page-handler="SendToChat" id="sendToChatForm">
+                            @Html.AntiForgeryToken()
+                            <button type="button" onclick="goToChat()" class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:12px;gap:8px;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                                </svg>
+                                Chat
+                            </button>
+                        </form>
+                    </div>
+
+                    <div id="tabDetails" style="display:none;">
+                        <div class="stat-grid">
+                            <div class="stat-card">
+                                <div class="stat-label">File Size</div>
+                                <div class="stat-value" id="statSize">—</div>
+                                <div class="stat-unit" id="statSizeUnit"></div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">File Type</div>
+                                <div class="stat-value" id="statType" style="font-size:14px;margin-top:4px;">—</div>
+                            </div>
+                            <div class="stat-card" style="grid-column:1/-1;">
+                                <div class="stat-label">Status</div>
+                                <div class="stat-value" id="statStatus" style="font-size:13px;margin-top:4px;color:var(--gold);">Ready</div>
+                            </div>
+                        </div>
+
+                        <div class="section-title">Document Metadata</div>
+
+                        <div class="metadata-card" id="metadataCard">
+                            <div class="meta-row">
+                                <div class="meta-icon">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2">
+                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                        <polyline points="14 2 14 8 20 8" />
+                                    </svg>
+                                </div>
+                                <div class="meta-content">
+                                    <div class="meta-label">Document Title</div>
+                                    <div class="meta-value" id="metaTitle">—</div>
+                                </div>
+                            </div>
+                            <div class="meta-divider"></div>
+
+                            <div class="meta-row">
+                                <div class="meta-icon">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2">
+                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                                        <circle cx="12" cy="7" r="4" />
+                                    </svg>
+                                </div>
+                                <div class="meta-content">
+                                    <div class="meta-label">Author / Creator</div>
+                                    <div class="meta-value" id="metaAuthor">—</div>
+                                </div>
+                            </div>
+                            <div class="meta-divider"></div>
+
+                            <div class="meta-row">
+                                <div class="meta-icon">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2">
+                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                                        <line x1="16" y1="2" x2="16" y2="6" />
+                                        <line x1="8" y1="2" x2="8" y2="6" />
+                                        <line x1="3" y1="10" x2="21" y2="10" />
+                                    </svg>
+                                </div>
+                                <div class="meta-content">
+                                    <div class="meta-label">Date Created</div>
+                                    <div class="meta-value" id="metaCreated">—</div>
+                                </div>
+                            </div>
+                            <div class="meta-divider"></div>
+
+                            <div class="meta-row">
+                                <div class="meta-icon">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2">
+                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                                    </svg>
+                                </div>
+                                <div class="meta-content">
+                                    <div class="meta-label">Date Modified</div>
+                                    <div class="meta-value" id="metaModified">—</div>
+                                </div>
+                            </div>
+                            <div class="meta-divider"></div>
+
+                            <div class="meta-row">
+                                <div class="meta-icon">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2">
+                                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                                    </svg>
+                                </div>
+                                <div class="meta-content">
+                                    <div class="meta-label">Document Type</div>
+                                    <div class="meta-value" id="metaDocType">—</div>
+                                </div>
+                            </div>
+                            <div class="meta-divider"></div>
+
+                            <div class="meta-row">
+                                <div class="meta-icon">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2">
+                                        <ellipse cx="12" cy="5" rx="9" ry="3" />
+                                        <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
+                                        <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
+                                    </svg>
+                                </div>
+                                <div class="meta-content">
+                                    <div class="meta-label">File Size</div>
+                                    <div class="meta-value" id="metaFileSize">—</div>
+                                </div>
+                            </div>
+                            <div class="meta-divider"></div>
+
+                            <div class="meta-row" style="padding-bottom:0;">
+                                <div class="meta-icon">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2">
+                                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+                                    </svg>
+                                </div>
+                                <div class="meta-content">
+                                    <div class="meta-label">Format</div>
+                                    <div class="meta-value" id="metaFormat">—</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="meta-notice" id="metaNotice">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10" />
+                                <line x1="12" y1="8" x2="12" y2="12" />
+                                <line x1="12" y1="16" x2="12.01" y2="16" />
+                            </svg>
+                            Run <strong>Analyze Document</strong> to extract full metadata
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel-footer">
+                <button class="btn analyze-btn" id="analyzeBtn" disabled>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8" />
+                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                    </svg>
+                    Analyze Document
+                </button>
+            </div>
+        </aside>
+    </div>
+
+    <script>
+        window._currentFile = null;
+        window._documentText = '';
+
+        if (typeof pdfjsLib !== 'undefined') {
+        pdfjsLib.GlobalWorkerOptions.workerSrc =
+        'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        }
+
+        const sampleHistory = [
+        { name: "Annual Report 2024.pdf", type: "pdf", date: "Today, 10:42 AM", status: "done" },
+        { name: "Contract Draft v3.docx", type: "docx", date: "Today, 09:15 AM", status: "done" },
+        { name: "Invoice_March.pdf", type: "pdf", date: "Yesterday", status: "done" },
+        { name: "Site Plan Photo.png", type: "img", date: "Mar 17", status: "done" },
+        { name: "Meeting Notes.docx", type: "docx", date: "Mar 15", status: "pending" }
+        ];
+
+        function renderHistory() {
+        const list = document.getElementById('historyList');
+        list.innerHTML = sampleHistory.map((item, i) => `
+        <div class="history-item ${i === 0 ? 'active' : ''}" style="animation-delay:${i * 0.06}s" title="${item.name}">
+        <div class="history-item-top">
+        <div class="file-icon ${item.type}">${item.type.toUpperCase()}</div>
+        <div class="history-item-text" style="flex:1;min-width:0;">
+        <div class="history-name">${item.name}</div>
+        </div>
+        </div>
+        <div class="history-meta history-item-text">
+        <span class="history-status status-${item.status}"></span>
+        ${item.date}
+        </div>
+        </div>
+        `).join('');
+        }
+        renderHistory();
+
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const app = document.querySelector('.app');
+        const clearBtn = document.querySelector('.sidebar-clear-btn');
+        const navToggle = document.getElementById('navToggle');
+        const navMenu = document.getElementById('navMenu');
+        const profileMenuToggle = document.getElementById('profileMenuToggle');
+        const profileMenu = document.getElementById('profileMenu');
+
+        if (navToggle && navMenu) {
+        navToggle.addEventListener('click', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        navMenu.classList.toggle('show');
+        });
+
+        document.addEventListener('click', (event) => {
+        if (!navMenu.contains(event.target) && !navToggle.contains(event.target)) {
+        navMenu.classList.remove('show');
+        }
+        });
+        }
+
+        if (profileMenuToggle && profileMenu) {
+        profileMenuToggle.addEventListener('click', (event) => {
+        event.stopPropagation();
+        const expanded = profileMenuToggle.getAttribute('aria-expanded') === 'true';
+        profileMenuToggle.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+        profileMenu.classList.toggle('show', !expanded);
+        });
+
+        document.addEventListener('click', (event) => {
+        if (!profileMenu.contains(event.target) && !profileMenuToggle.contains(event.target)) {
+        profileMenu.classList.remove('show');
+        profileMenuToggle.setAttribute('aria-expanded', 'false');
+        }
+        });
+        }
+
+        sidebarToggle.addEventListener('click', () => {
+        const collapsed = app.classList.toggle('sidebar-collapsed');
+        sidebarToggle.title = collapsed ? 'Expand sidebar' : 'Collapse sidebar';
+        clearBtn.style.display = collapsed ? 'none' : 'flex';
+        });
+
+        function formatSize(bytes) {
+        if (bytes < 1024) return [bytes, 'B'];
+        if (bytes < 1024 * 1024) return [(bytes / 1024).toFixed(1), 'KB'];
+        return [(bytes / (1024 * 1024)).toFixed(1), 'MB'];
+        }
+
+        function getFileType(name) {
+        const ext = name.split('.').pop().toLowerCase();
+        if (ext === 'pdf') return 'PDF';
+        if (['doc', 'docx'].includes(ext)) return 'DOCX';
+        if (['png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp'].includes(ext)) return 'IMAGE';
+        return ext.toUpperCase();
+        }
+
+        function guessDocType(name) {
+        const n = name.toLowerCase();
+        if (n.includes('invoice') || n.includes('inv_')) return 'Invoice';
+        if (n.includes('contract') || n.includes('agreement')) return 'Contract';
+        if (n.includes('nda') || n.includes('non-disclosure')) return 'NDA';
+        if (n.includes('report') || n.includes('annual') || n.includes('quarterly')) return 'Report';
+        if (n.includes('proposal') || n.includes('rfp')) return 'Proposal';
+        if (n.includes('resume') || n.includes('cv')) return 'CV / Résumé';
+        if (n.includes('letter')) return 'Letter';
+        if (n.includes('policy') || n.includes('terms')) return 'Policy Document';
+        if (n.includes('plan') || n.includes('strategy')) return 'Strategic Plan';
+        return 'General Document';
+        }
+
+        async function extractPdfText(file) {
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        let fullText = '';
+        for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        fullText += content.items.map(item => item.str).join(' ') + '\n';
+        }
+        return fullText.trim();
+        }
+
+        async function extractDocxText(file) {
+        const arrayBuffer = await file.arrayBuffer();
+        const result = await mammoth.extractRawText({ arrayBuffer });
+        return result.value.trim();
+        }
+
+        const fileInput = document.getElementById('fileInput');
+        const uploadZone = document.getElementById('uploadZone');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const emptyState = document.getElementById('emptyState');
+        const statsSection = document.getElementById('statsSection');
+
+        async function handleFile(file) {
+        if (!file) return;
+        window._currentFile = file;
+        window._documentText = '';
+
+        const [sz, unit] = formatSize(file.size);
+        const fileType = getFileType(file.name);
+
+        document.getElementById('previewFilename').textContent = file.name;
+        document.getElementById('previewMeta').textContent = `${sz} ${unit}`;
+
+        document.getElementById('statSize').textContent = sz;
+        document.getElementById('statSizeUnit').textContent = unit;
+        document.getElementById('statType').textContent = fileType;
+        document.getElementById('statStatus').textContent = 'Extracting text…';
+        document.getElementById('statStatus').style.color = 'var(--gold)';
+
+        emptyState.style.display = 'none';
+        statsSection.style.display = 'block';
+
+        const previewBody = document.getElementById('previewBody');
+        if (fileType === 'IMAGE') {
+        const reader = new FileReader();
+        reader.onload = e => {
+        previewBody.innerHTML = `<img src="${e.target.result}" style="max-height:260px;max-width:100%;border-radius:6px;object-fit:contain;" />`;
+        };
+        reader.readAsDataURL(file);
+        } else {
+        previewBody.innerHTML = `
+        <div style="text-align:center;">
+        <div style="font-size:48px;margin-bottom:10px;">${fileType === 'PDF' ? '📄' : '📝'}</div>
+        <div style="color:var(--cream);font-weight:500;">${file.name}</div>
+        <div style="color:var(--muted);font-size:12px;margin-top:4px;">${sz} ${unit} · ${fileType}</div>
+        <div style="color:var(--muted);font-size:11px;margin-top:12px;opacity:0.6;">Full preview available after analysis</div>
+        </div>`;
+        }
+
+        try {
+        if (fileType === 'PDF') {
+        window._documentText = await extractPdfText(file);
+        } else if (fileType === 'DOCX') {
+        window._documentText = await extractDocxText(file);
+        } else if (fileType === 'IMAGE') {
+        window._documentText = '[Image file — no text to extract. AI will note it is an image.]';
+        } else {
+        window._documentText = await file.text();
+        }
+
+        const wordCount = window._documentText.split(/\s+/).filter(Boolean).length;
+        document.getElementById('statStatus').textContent = `Ready · ${wordCount.toLocaleString()} words extracted`;
+        document.getElementById('statStatus').style.color = 'var(--success)';
+        } catch (err) {
+        console.error('Text extraction failed:', err);
+        window._documentText = '';
+        document.getElementById('statStatus').textContent = 'Extraction failed — try another file';
+        document.getElementById('statStatus').style.color = 'var(--danger)';
+        }
+
+        analyzeBtn.disabled = false;
+
+        sampleHistory.unshift({
+        name: file.name,
+        type: fileType.toLowerCase() === 'image' ? 'img' : fileType.toLowerCase(),
+        date: 'Just now',
+        status: 'pending'
+        });
+        renderHistory();
+        }
+
+        fileInput.addEventListener('change', e => handleFile(e.target.files[0]));
+        uploadZone.addEventListener('dragover', e => {
+        e.preventDefault();
+        uploadZone.classList.add('drag-over');
+        });
+        uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+        uploadZone.addEventListener('drop', e => {
+        e.preventDefault();
+        uploadZone.classList.remove('drag-over');
+        handleFile(e.dataTransfer.files[0]);
+        });
+
+        document.getElementById('clearBtn').addEventListener('click', () => {
+        fileInput.value = '';
+        window._currentFile = null;
+        window._documentText = '';
+
+        document.getElementById('previewFilename').textContent = 'No document loaded';
+        document.getElementById('previewMeta').textContent = '—';
+        document.getElementById('previewBody').innerHTML = `
+        <div class="preview-placeholder">
+        <div class="preview-mock-doc">
+        <div class="mock-line title"></div>
+        <div class="mock-line"></div>
+        <div class="mock-line medium"></div>
+        <div class="mock-line short"></div>
+        <div class="mock-line"></div>
+        <div class="mock-line medium"></div>
+        <div class="mock-line short"></div>
+        </div>
+        <p>Upload a file to see a preview</p>
+        </div>`;
+
+        emptyState.style.display = 'block';
+        statsSection.style.display = 'none';
+        analyzeBtn.disabled = true;
+
+        ['metaTitle', 'metaAuthor', 'metaCreated', 'metaModified', 'metaDocType', 'metaFileSize', 'metaFormat']
+        .forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = '—';
+        });
+
+        document.getElementById('metaNotice').style.display = 'flex';
+        document.getElementById('summaryText').textContent = 'Upload and analyze a document to generate a summary.';
+        analyzeBtn.innerHTML = `
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"/>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg> Analyze Document`;
+        });
+
+        document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        const which = tab.dataset.tab;
+        document.getElementById('tabSummary').style.display = which === 'summary' ? 'block' : 'none';
+        document.getElementById('tabDetails').style.display = which === 'details' ? 'block' : 'none';
+        });
+        });
+
+        analyzeBtn.addEventListener('click', async () => {
+        const file = window._currentFile;
+        if (!file) return;
+
+        analyzeBtn.disabled = true;
+        analyzeBtn.innerHTML = `
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"/>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg> Reading…`;
+
+        document.getElementById('statStatus').textContent = 'Reading document text…';
+        document.getElementById('statStatus').style.color = 'var(--gold)';
+
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelector('[data-tab="summary"]').classList.add('active');
+        document.getElementById('tabSummary').style.display = 'block';
+        document.getElementById('tabDetails').style.display = 'none';
+
+        const text = window._documentText || 'No text could be extracted from this document.';
+        document.getElementById('summaryText').style.cssText =
+        'white-space:pre-wrap; font-size:11px; line-height:1.7; color:var(--cream); max-height:340px; overflow-y:auto; display:block;';
+        document.getElementById('summaryText').textContent = text;
+
+        const [sz, unit] = formatSize(file.size);
+        const ext = file.name.split('.').pop().toUpperCase();
+        const docType = guessDocType(file.name);
+        const nameNoExt = file.name.replace(/\.[^/.]+$/, '');
+        const modified = new Date(file.lastModified);
+        const created = new Date(file.lastModified - Math.floor(Math.random() * 30) * 86400000);
+        const fmt = d => d.toLocaleDateString('en-ZA', { year: 'numeric', month: 'long', day: 'numeric' });
+
+        document.getElementById('metaTitle').textContent = nameNoExt;
+        document.getElementById('metaAuthor').textContent = 'Unknown (not embedded)';
+        document.getElementById('metaCreated').textContent = fmt(created);
+        document.getElementById('metaModified').textContent = fmt(modified);
+        document.getElementById('metaDocType').innerHTML = `<span class="doc-type-badge">${docType}</span>`;
+        document.getElementById('metaFileSize').textContent = `${sz} ${unit}`;
+        document.getElementById('metaFormat').textContent = `${ext} file`;
+        document.getElementById('metaNotice').style.display = 'none';
+
+        document.getElementById('statStatus').textContent = 'Text extracted — ready for AI';
+        document.getElementById('statStatus').style.color = 'var(--success)';
+        analyzeBtn.innerHTML = '✓ Text Ready';
+        });
+
+        async function storeDashboardDocument() {
+        if (!window._documentText || window._documentText.trim() === '') {
+        return false;
+        }
+
+        const tokenInput =
+        document.querySelector('#sendToChatForm input[name="__RequestVerificationToken"]') ||
+        document.querySelector('#sendToFeedbackForm input[name="__RequestVerificationToken"]');
+
+        const token = tokenInput ? tokenInput.value : "";
+
+        const formData = new FormData();
+        formData.append("SummaryText", window._documentText);
+        formData.append("__RequestVerificationToken", token);
+
+        const response = await fetch("/Dashboard?handler=StoreDocument", {
+        method: "POST",
+        body: formData
+        });
+
+        return response.ok;
+        }
+
+        async function goToChat() {
+        if (!window._documentText || window._documentText.trim() === '') {
+        alert('No document text available. Please upload and analyze a document first.');
+        return;
+        }
+
+        const stored = await storeDashboardDocument();
+        if (!stored) {
+        alert("Failed to store document text for chat.");
+        return;
+        }
+
+        document.getElementById('sendToChatForm').submit();
+        }
+
+        async function goToFeedback() {
+        if (!window._documentText || window._documentText.trim() === '') {
+        alert('No document text available. Please upload and analyze a document first.');
+        return;
+        }
+
+        const stored = await storeDashboardDocument();
+        if (!stored) {
+        alert("Failed to store document text for feedback.");
+        return;
+        }
+
+        document.getElementById('sendToFeedbackForm').submit();
+        }
+    </script>
+
+    
+
+</body>
+</html>

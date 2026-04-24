@@ -1,0 +1,113 @@
+@page "/Home"
+@model RicohAiDocumentPortal.Pages.IndexModel
+@{
+    ViewData["Title"] = "Home";
+}
+
+<section class="home-hero premium-page">
+
+    <h1 class="hero-title">Ricoh AI Document Portal</h1>
+
+    <p class="hero-subtitle">
+        Securely upload, analyze, and interact with your business documents using powerful AI insights.
+    </p>
+
+    <div class="hero-buttons hero-buttons-single">
+        <a asp-page="/Dashboard/Index" class="btn-secondary">Go to Dashboard</a>
+    </div>
+
+</section>
+
+<section class="home-features premium-page" id="homeFeatureGrid">
+
+    <div class="feature-card feedback-card tilt-card">
+        <div class="tilt-card-spotlight"></div>
+        <div class="feature-card-inner">
+            <div class="feature-card-dot"></div>
+            <h2>📄 Smart Document Analysis</h2>
+            <p>
+                Automatically extract key data, identify document types, detect risks, and score documents with AI precision.
+            </p>
+        </div>
+    </div>
+
+    <div class="feature-card feedback-card tilt-card">
+        <div class="tilt-card-spotlight"></div>
+        <div class="feature-card-inner">
+            <div class="feature-card-dot"></div>
+            <h2>⚠️ Risk Detection</h2>
+            <p>
+                Detect inconsistencies, missing fields, and potential compliance issues in invoices and business documents.
+            </p>
+        </div>
+    </div>
+
+    <div class="feature-card feedback-card tilt-card">
+        <div class="tilt-card-spotlight"></div>
+        <div class="feature-card-inner">
+            <div class="feature-card-dot"></div>
+            <h2>📊 AI Feedback &amp; Insights</h2>
+            <p>
+                Receive intelligent feedback, corrections, and confidence scores to improve document quality instantly.
+            </p>
+        </div>
+    </div>
+
+    <div class="feature-card feedback-card tilt-card">
+        <div class="tilt-card-spotlight"></div>
+        <div class="feature-card-inner">
+            <div class="feature-card-dot"></div>
+            <h2>💬 AI Chat Assistant</h2>
+            <p>
+                Ask questions about your documents and receive real-time AI-powered explanations and guidance.
+            </p>
+        </div>
+    </div>
+
+</section>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const cards = document.querySelectorAll(".tilt-card");
+    if (!cards.length) return;
+
+    const maxRotate = 9;
+    const lift = 10;
+
+    cards.forEach((card) => {
+        function resetCard() {
+            card.style.transform = `perspective(1600px) rotateX(0deg) rotateY(0deg) translateY(0px)`;
+            card.style.setProperty("--spot-x", "50%");
+            card.style.setProperty("--spot-y", "50%");
+            card.classList.remove("is-hovered");
+        }
+
+        function handleMove(e) {
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            const px = x / rect.width;
+            const py = y / rect.height;
+
+            const rotateY = (px - 0.5) * (maxRotate * 2);
+            const rotateX = (0.5 - py) * (maxRotate * 2);
+
+            card.style.transform =
+                `perspective(1600px) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg) translateY(-${lift}px)`;
+
+            card.style.setProperty("--spot-x", `${x}px`);
+            card.style.setProperty("--spot-y", `${y}px`);
+            card.classList.add("is-hovered");
+        }
+
+        card.addEventListener("mousemove", handleMove);
+        card.addEventListener("mouseenter", () => {
+            card.classList.add("is-hovered");
+        });
+        card.addEventListener("mouseleave", resetCard);
+
+        resetCard();
+    });
+});
+</script>
